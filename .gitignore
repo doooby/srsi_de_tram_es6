@@ -19,5 +19,9 @@ tmp/*
 
 # Ignore Byebug command history file.
 .byebug_history
+
+# intelij / rubymine
 .idea
 *.iml
+
+node_modules
