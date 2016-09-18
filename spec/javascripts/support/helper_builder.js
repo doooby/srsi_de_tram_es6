@@ -17,7 +17,7 @@ var HelperBuilder = {
 
     buildStats: function (changes) {
         let stats = Turn.clearStats();
-        ['continuance', 'attack'].forEach(a => {
+        ['continuance', 'attack', 'suit', 'eights'].forEach(a => {
             if (changes[a] !== undefined) stats[a] = changes[a];
         });
         return stats;

@@ -13,6 +13,13 @@ export class Game {
 
     }
 
+    isThereEnoughCards (needed) {
+        let in_pile = this.pile.length - 1;
+        if (needed >= this.deck.length && in_pile > 0) {
+            this.deck = this.deck.concat(this.pile.splice(0, in_pile));
+        }
+        return this.deck.length >= needed;
+    }
 
 }
 
@@ -29,11 +36,8 @@ export class Turn {
     constructor (game, player_i, stats) {
         this.game = game;
         this.player_i = player_i;
+        this.player = game.players[player_i];
         this.stats = (stats === undefined ? Turn.clearStats() : stats);
-    }
-
-    playersHand () {
-        return this.game.players[this.player_i].cards;
     }
 
     pileCard () {
@@ -52,8 +56,9 @@ export class Turn {
     }
 
     draw () {
-        //let card = this.game.deck.splice(0, 1)[0];
-        //this.game.players[this.player_i].cards.push(card);
+        let move = new DrawMove(this);
+        move.process();
+        return move;
     }
 
     doNothing () {
@@ -63,6 +68,7 @@ export class Turn {
     }
 
     selectQueenSuit (suit) {
+        if (suit === undefined) suit = null;
         return new SuitChangeMove(this, suit);
     }
 
@@ -70,6 +76,7 @@ export class Turn {
         this.game.propagate(move);
         move.apply();
         if (!move.terminating()) {
+            this.multi_move = true;
             return this;
 
         } else {
@@ -84,7 +91,8 @@ export class Turn {
         return {
             continuance: false,
             attack: 0,
-            suit: null
+            suit: null,
+            eights: 0
         };
     }
 
@@ -98,11 +106,51 @@ class Move {
     }
 
     errorMessage () {
-        this.context.t(this.error);
+        this.context.t('' + this.error);
     }
 
     terminating () {
         return true;
+    }
+
+}
+
+class DrawMove extends Move {
+
+    process () {
+        let stats = this.context.stats;
+
+        let pile = this.context.pileCard();
+        if (stats.continuance && pile.rank === cards.ACE) {
+            this.error = 'ace';
+            this.valid = false;
+            return;
+        }
+
+        this.to_take = 1;
+        if (stats.attack > 0) this.to_take = stats.attack;
+        else if (stats.eights > 0) this.to_take = stats.eights;
+        if (!this.context.game.isThereEnoughCards(this.to_take)) {
+            this.error = 'not_enough_cards';
+            this.valid = false;
+        }
+    }
+
+    apply () {
+        let stats = this.context.stats;
+        stats.continuance = false;
+
+        let cards_to_take = this.context.game.deck.splice(0, this.to_take);
+        this.context.player.cards = this.context.player.cards.concat(cards_to_take);
+
+        if (stats.attack > 0) {
+            stats.attack = 0;
+
+        } else if (stats.eights > 0) {
+            stats.eights = 0;
+            stats.continuance = true;
+
+        }
     }
 
 }
@@ -115,15 +163,15 @@ class LayMove extends Move {
     }
 
     process () {
-        let card = this.context.playersHand()[this.card_i];
+        let card = this.context.player.cards[this.card_i];
         let pile = this.context.pileCard();
 
-        if (card.rank === cards.QUEEN) {
+        if (card.rank === cards.QUEEN || card.rank === cards.EIGHT) {
             this.not_terminating = true;
         }
 
         if (this.context.stats.attack && (!card.isAttack() && card.rank !== cards.TEN)) {
-            this.error = 'bad_move.attack';
+            this.error = 'attack';
             this.valid = false;
             return;
         }
@@ -133,13 +181,19 @@ class LayMove extends Move {
         }
 
         if (this.context.stats.continuance && pile.rank === cards.ACE && card.rank !== cards.ACE) {
-            this.error = 'bad_move.ace';
+            this.error = 'ace';
             this.valid = false;
             return;
         }
 
         if (pile.rank === cards.TEN && card.isAttack()) {
-            this.error = 'bad_move.attack_on_ten';
+            this.error = 'attack_on_ten';
+            this.valid = false;
+            return;
+        }
+        
+        if (card.rank === cards.ACE && this.context.player.cards.length === 1) {
+            this.error = 'ace_end';
             this.valid = false;
             return;
         }
@@ -148,7 +202,7 @@ class LayMove extends Move {
             return;
         }
 
-        this.error = 'bad_move.no_match';
+        this.error = 'no_match';
         this.valid = false;
     }
 
@@ -157,7 +211,7 @@ class LayMove extends Move {
     }
 
     apply () {
-        let card = this.context.playersHand().splice(this.card_i, 1)[0];
+        let card = this.context.player.cards.splice(this.card_i, 1)[0];
         this.context.game.pile.push(card);
 
         let stats = this.context.stats;
@@ -168,6 +222,10 @@ class LayMove extends Move {
 
             case cards.SEVEN:
                 stats.attack += 2;
+                break;
+
+            case cards.EIGHT:
+                stats.eights += 1;
                 break;
 
             case cards.TEN:
@@ -183,7 +241,6 @@ class LayMove extends Move {
                 break;
         }
 
-
     }
 
 }
@@ -196,7 +253,9 @@ class SuitChangeMove extends Move {
     }
 
     apply () {
-        this.context.stats.suit = this.suit;
+        let stats = this.context.stats;
+        stats.suit = this.suit;
+        stats.continuance = true;
     }
 
 }
@@ -204,11 +263,18 @@ class SuitChangeMove extends Move {
 class NoMove extends Move {
 
     process () {
+        let pile = this.context.pileCard();
 
+        if (this.context.stats.continuance && pile.rank === cards.ACE) {
+            return;
+        }
+
+        this.error = 'nothing';
+        this.valid = false;
     }
 
     apply () {
-
+        this.context.stats.continuance = false;
     }
 
 }
