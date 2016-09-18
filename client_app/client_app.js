@@ -1,6 +1,6 @@
-//= require handlebars.runtime
-//= require_directory ./templates
+//= require ./handlebars_app
 
+'use strict';
 
 import {cards, Deck} from 'srsi/deck';
 import Player from 'srsi/player';
@@ -30,30 +30,12 @@ window.game = game;
 
 
 
-function renderSection (section, title, cards, on_click) {
-    let $html = $(HandlebarsTemplates['section']({
-        section: section,
-        title: title,
-        cards: cards.map((c, i) => { return {index: i, text: c.text}; })
-    }));
 
-    if (typeof on_click === 'function') $html.on('click', '.card', on_click);
-    return $html;
-}
 
 game.print = function () {
-    let $container = $('#container');
 
-    $container.append(renderSection('deck', 'Deck', game.deck.cards));
-    $container.append(renderSection('pile', 'Pile', game.pile));
-
-    game.players.forEach(player => {
-        $container.append(renderSection('player', player.name, player.cards, (e) => {
-            let card_index = $(e.target).data('card');
-            console.log('Player ' + player.name + ' clicked on card ' + player.cards[card_index].text);
-        }));
-    });
 
 };
 
 game.print();
+
