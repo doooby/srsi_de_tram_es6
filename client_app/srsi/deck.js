@@ -1,33 +1,38 @@
-class Card {
+export class Card {
 
     constructor (id) {
-        this.id = id;
-        this.text = transcriptions[this.suit()] + transcriptions[this.rank()];
+        this.suit = id & 0xf0;
+        this.rank = id & 0x0f;
+        this.text = transcriptions[this.suit] + transcriptions[this.rank];
     }
 
-    suit () { return this.id & 0xf0; }
-    rank () { return this.id & 0x0f; }
+    id () { return this.suit | this.rank; }
 
+    isAttack () {
+        return this.rank === cards.SEVEN ||
+            this.rank === cards.KING ||
+            this.rank === cards.DRAGON;
+    }
 }
 
 let transcriptions = {};
 let cards = [];
 
 // suits
-cards.HEARTS =  0x10;
-cards.BELLS = 0x20;
-cards.ACORNS = 0x30;
-cards.LEAVES = 0x40;
+cards.HEARTS = 0x10;  // 16 ♥
+cards.BELLS  = 0x20;  // 32 ♦
+cards.ACORNS = 0x30;  // 48 ♣
+cards.LEAVES = 0x40;  // 64 ♠
 
 // ranks
-cards.SEVEN = 0x1;
-cards.EIGHT = 0x2;
-cards.NINE = 0x3;
-cards.TEN = 0x4;
-cards.JACK = 0x5;
-cards.QUEEN = 0x6;
-cards.KING = 0x7;
-cards.ACE = 0x8;
+cards.SEVEN  = 0x7;
+cards.EIGHT  = 0x8;
+cards.NINE   = 0x9;
+cards.TEN    = 0xA;
+cards.JACK   = 0xB;
+cards.QUEEN  = 0xC;
+cards.KING   = 0xD;
+cards.ACE    = 0xE;
 
 // dragon
 cards.DRAGON = 0x0;
@@ -66,6 +71,10 @@ cards.shuffleNewDeck = function () {
         array[j] = temp
     }
     return array;
+};
+
+cards.create = function (suit, rank) {
+    return new Card(suit | rank);
 };
 
 Object.freeze(cards);
