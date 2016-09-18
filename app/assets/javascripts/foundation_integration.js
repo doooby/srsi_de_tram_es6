@@ -27,5 +27,3 @@
 //#= require foundation.util.timerAndImageLoader.js
 //#= require foundation.util.touch.js
 //= require foundation.util.triggers.js
-
-// KKK

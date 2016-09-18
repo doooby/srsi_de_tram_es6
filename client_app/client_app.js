@@ -2,9 +2,8 @@
 
 'use strict';
 
-import {cards, Deck} from 'srsi/deck';
-import Player from 'srsi/player';
-
+import {cards} from 'srsi/deck';
+import {Game, Player, Turn} from 'srsi/game';
 
 
 var game = {
@@ -12,7 +11,7 @@ var game = {
         new Player('ondra'),
         new Player('karel')
     ],
-    deck: Deck.shuffleNewDeck(),
+    deck: cards.shuffleNewDeck(),
     pile: [],
 
     listCards: function (cards) {
@@ -20,22 +19,13 @@ var game = {
     }
 };
 
-game.players[0].cards = game.players[0].cards.concat(game.deck.cards.splice(0, 6));
-game.players[1].cards = game.players[1].cards.concat(game.deck.cards.splice(0, 6));
+game.players[0].cards = game.deck.splice(0, 6);
+game.players[1].cards = game.deck.splice(0, 6);
+game.pile = game.deck.splice(0, 1);
 
-window.cards = cards;
+
 window.game = game;
 
-
-
-
-
-
-
-game.print = function () {
-
-
-};
-
-game.print();
-
+let stats = {};
+let turn = new Turn(game, 0, stats);
+window.HB_APP.print(turn);

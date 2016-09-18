@@ -1,4 +1,9 @@
-<div class="section" data-section="{{section}}">
+<div class="section {{#if on_turn}}on_turn{{/if}}" data-section="{{section}}">
     <h3>{{title}}</h3>
+    {{#if on_turn}}
+        <button type="button" class="button small secondary" data-action="draw">Draw</button>
+        <button type="button" class="button small secondary" data-action="strike">Strike</button>
+        <br/>
+    {{/if}}
     {{#each cards}}{{>_card this}}{{/each}}
 </div>

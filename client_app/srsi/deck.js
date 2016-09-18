@@ -57,31 +57,44 @@ cards.SUITS.forEach(function (suit) {
     });
 });
 
+cards.shuffleNewDeck = function () {
+    let i = 0, j = 0, temp = null, array = cards.slice();
+    for (i = array.length - 1; i > 0; i -= 1) {
+        j = Math.floor(Math.random() * (i + 1));
+        temp = array[i];
+        array[i] = array[j];
+        array[j] = temp
+    }
+    return array;
+};
+
 Object.freeze(cards);
 export {cards};
 
-export class Deck {
 
-    constructor (cards) {
-        this.cards = cards;
-    }
 
-    static shuffleNewDeck () {
-        let i = 0, j = 0, temp = null, array = cards.slice();
-        for (i = array.length - 1; i > 0; i -= 1) {
-            j = Math.floor(Math.random() * (i + 1));
-            temp = array[i];
-            array[i] = array[j];
-            array[j] = temp
-        }
-        return new Deck(array);
-    }
-
-    //take (count) {
-    //    if (count+1 > this.cards.length) {
-    //        throw 'došel balík';
-    //        //this.cards = this.cards.concat(SDT.game.pile.takeCards());
-    //    }
-    //    else return this.cards.splice(0, count);
-    //}
-}
+//export class Deck {
+//
+//    constructor (cards) {
+//        this.cards = cards;
+//    }
+//
+//    static shuffleNewDeck () {
+//        let i = 0, j = 0, temp = null, array = cards.slice();
+//        for (i = array.length - 1; i > 0; i -= 1) {
+//            j = Math.floor(Math.random() * (i + 1));
+//            temp = array[i];
+//            array[i] = array[j];
+//            array[j] = temp
+//        }
+//        return new Deck(array);
+//    }
+//
+//    //take (count) {
+//    //    if (count+1 > this.cards.length) {
+//    //        throw 'došel balík';
+//    //        //this.cards = this.cards.concat(SDT.game.pile.takeCards());
+//    //    }
+//    //    else return this.cards.splice(0, count);
+//    //}
+//}
