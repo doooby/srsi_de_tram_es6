@@ -13,6 +13,15 @@ export class Card {
             this.rank === cards.KING ||
             this.rank === cards.DRAGON;
     }
+
+    suitText () {
+        switch (this.suit) {
+            case cards.HEARTS: return 'hearts';
+            case cards.BELLS: return 'bells';
+            case cards.ACORNS: return 'acorn';
+            case cards.LEAVES: return 'leaves';
+        }
+    }
 }
 
 let transcriptions = {};

@@ -1,37 +1,63 @@
 #container {
-  background-color: #0e8835;
+  background-color: #b8efb8;
 }
 
 #printout {
-  min-height: rem-calc(200);
+  min-height: rem-calc(65);
 }
 
 .section {
+  $red-card: #a91b08;
+  $black-card: #202122;
+  $active-color: #9aa97e;
 
-  &.on_turn {
-    background-color: #628e3c;
+  margin: rem-calc(5);
 
-    .card {
-      cursor: pointer;
-      &:hover {
-        border: 1px inset gray;
-      }
-    }
-
+  .title {
+    display: inline-block;
+    margin-bottom: rem-calc(5);
+    margin-right: rem-calc(20);
+    font-weight: bold;
+    font-size: 140%;
   }
-
-
 
   .card {
     display: inline-block;
     width: rem-calc(40);
     height: rem-calc(60);
-    border: 1px outset gray;
+    border: 1px solid gray;
     background-color: $medium-gray;
     margin: rem-calc(5);
     text-align: center;
+
+    color: $black-card;
+    &.hearts { color: $red-card; }
+    &.bells { color: $red-card; }
   }
 
+  &.on_turn {
+    border: 2px dashed $active-color;
+    .card {
+      border: 1px outset gray;
+      cursor: pointer;
+      &:hover { border: 1px inset gray; }
+    }
+  }
 
+  &.deck {
+    .card.first {
+      border: 2px dashed $active-color;
+    }
+  }
 
+  &.pile {
+    .card.last {
+      border: 2px dashed $active-color;
+    }
+  }
+
+  button {
+    margin-bottom: 0;
+    padding: rem-calc(6);
+  }
 }

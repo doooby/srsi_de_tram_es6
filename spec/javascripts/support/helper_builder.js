@@ -21,6 +21,13 @@ var HelperBuilder = {
             if (changes[a] !== undefined) stats[a] = changes[a];
         });
         return stats;
+    },
+
+    possibleActionsFor: function (pile_card, stats) {
+        let game = HelperBuilder.anonymousGameAt(({pile: [pile_card]}));
+        if (stats !== undefined) stats = HelperBuilder.buildStats(stats);
+        let turn = new Turn(game, 0, stats);
+        return turn.possibleActions();
     }
 
 };

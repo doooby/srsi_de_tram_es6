@@ -149,6 +149,28 @@ describe('game rules', () => {
             expect(game.pile.length).toBe(1);
         });
 
+        it('can lay dragon on anything', () => {
+            let game = game_at({
+                pile: [new Card(cards.HEARTS | cards.NINE)],
+                player1: [new Card(cards.DRAGON)]
+            });
+            let turn = new Turn(game, 0);
+            let move = turn.lay(0);
+            expect(move.valid).toBe(true);
+            expect(move.terminating()).toBe(true);
+        });
+
+        it('can lay anything on dragon - discontinued', () => {
+            let game = game_at({
+                pile: [new Card(cards.DRAGON)],
+                player1: [new Card(cards.LEAVES | cards.NINE)]
+            });
+            let turn = new Turn(game, 0);
+            let move = turn.lay(0);
+            expect(move.valid).toBe(true);
+            expect(move.terminating()).toBe(true);
+        });
+
     });
 
     describe('attack cards', () => {
@@ -306,9 +328,10 @@ describe('game rules', () => {
             let move = turn.lay(0);
             expect(move.valid).toBe(true);
             expect(move.terminating()).toBe(false);
-            move.apply();
+            expect(turn.finishTurn(move)).toBe(turn);
+            expect(turn.last_move).toBe(move);
+            expect(move.queer).toBe(true);
 
-            turn.multi_move = true;
             move = turn.selectQueenSuit();
             expect(move.valid).toBe(true);
             expect(move.terminating()).toBe(true);
@@ -327,9 +350,10 @@ describe('game rules', () => {
             let move = turn.lay(0);
             expect(move.valid).toBe(true);
             expect(move.terminating()).toBe(false);
-            move.apply();
+            expect(turn.finishTurn(move)).toBe(turn);
+            expect(turn.last_move).toBe(move);
+            expect(move.queer).toBe(true);
 
-            turn.multi_move = true;
             let new_suit = cards.BELLS;
             move = turn.selectQueenSuit(new_suit);
             expect(move.valid).toBe(true);
@@ -364,15 +388,18 @@ describe('game rules', () => {
             let move = turn.lay(0);
             expect(move.valid).toBe(true);
             expect(move.terminating()).toBe(false);
-            move.apply();
+            expect(turn.finishTurn(move)).toBe(turn);
+            expect(turn.last_move).toBe(move);
+            expect(move.eights).toBe(true);
             expect(turn.stats.eights).toBe(1);
             expect(turn.player.cards.length).toBe(1);
 
-            turn.multi_move = true;
             move = turn.lay(0);
             expect(move.valid).toBe(true);
             expect(move.terminating()).toBe(false);
-            move.apply();
+            expect(turn.finishTurn(move)).toBe(turn);
+            expect(turn.last_move).toBe(move);
+            expect(move.eights).toBe(true);
             expect(turn.stats.eights).toBe(2);
             expect(turn.player.cards.length).toBe(0);
 
@@ -391,7 +418,6 @@ describe('game rules', () => {
                 player1: [new Card(cards.HEARTS | cards.EIGHT)]
             });
             let turn = new Turn(game, 0, stats_with({continuance: true, eights: 3}));
-            turn.multi_move = true;
             let move = turn.draw();
             expect(move.valid).toBe(false);
             expect(move.error).toBe('not_enough_cards');
@@ -400,5 +426,35 @@ describe('game rules', () => {
         });
 
     });
+
+    describe('corrections', () => {
+
+        // jack on ace
+        // the check whether is jack was at the beginning of move validation and therefore attack check was skipped
+        it('jack on ace', () => {
+            let game = game_at({
+                pile: [new Card(cards.HEARTS | cards.ACE)],
+                player1: [new Card(cards.ACORNS | cards.JACK)]
+            });
+
+            let turn = new Turn(game, 0, stats_with({continuance: true}));
+            let move = turn.lay(0);
+            expect(move.valid).toBe(false);
+            expect(move.error).toBe('ace');
+        });
+
+        // couldn't lay a seven on the dragon
+        it('seven on dragon', () => {
+            let game = game_at({
+                pile: [new Card(cards.DRAGON)],
+                player1: [new Card(cards.HEARTS | cards.SEVEN)]
+            });
+
+            let turn = new Turn(game, 0, stats_with({continuance: true, attack: 5}));
+            let move = turn.lay(0);
+            expect(move.valid).toBe(true);
+        });
+
+    })
 
 });

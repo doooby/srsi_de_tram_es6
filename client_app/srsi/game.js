@@ -21,7 +21,20 @@ export class Game {
         return this.deck.length >= needed;
     }
 
+    t (key) {
+        let keys = ('translations.' + key).split('.');
+        let value = _translation_finder(this, keys, 0);
+        return value === undefined ? 'Missing text for key='+key : value;
+    }
+
 }
+
+var _translation_finder = (data, keys, i) => {
+    if (typeof data !== 'object') return undefined;
+    let value = data[keys[i]];
+    i += 1;
+    return i === keys.length ? value : _translation_finder(value, keys, i);
+};
 
 export class Player {
 
@@ -69,14 +82,14 @@ export class Turn {
 
     selectQueenSuit (suit) {
         if (suit === undefined) suit = null;
-        return new SuitChangeMove(this, suit);
+        return new QueerMove(this, suit);
     }
 
     finishTurn (move) {
         this.game.propagate(move);
         move.apply();
         if (!move.terminating()) {
-            this.multi_move = true;
+            this.last_move = move;
             return this;
 
         } else {
@@ -85,6 +98,33 @@ export class Turn {
             return new Turn(this.game, next_player_i, Object.assign({}, this.stats));
 
         }
+    }
+
+    possibleActions () {
+        if (this.last_move) {
+            if (this.last_move.queer) return ['queer'];
+            else if (this.last_move.eights) return ['draw', 'lay'];
+            return [];
+        }
+
+        let last_is_ace = this.player.cards.length ===1 && this.player.cards[0].rank === cards.ACE;
+
+        if (this.stats.continuance) {
+
+            if (last_is_ace) return ['stay'];
+            else {
+
+                if (this.pileCard().rank === cards.ACE) return ['stay', 'lay'];
+                if (this.stats.attack > 0) return ['devour', 'lay'];
+            }
+
+        } else {
+
+            if (last_is_ace) return ['draw'];
+
+        }
+
+        return ['draw', 'lay'];
     }
 
     static clearStats () {
@@ -106,7 +146,7 @@ class Move {
     }
 
     errorMessage () {
-        this.context.t('' + this.error);
+        return this.context.game.t('bad_move.' + this.error);
     }
 
     terminating () {
@@ -166,17 +206,9 @@ class LayMove extends Move {
         let card = this.context.player.cards[this.card_i];
         let pile = this.context.pileCard();
 
-        if (card.rank === cards.QUEEN || card.rank === cards.EIGHT) {
-            this.not_terminating = true;
-        }
-
         if (this.context.stats.attack && (!card.isAttack() && card.rank !== cards.TEN)) {
             this.error = 'attack';
             this.valid = false;
-            return;
-        }
-
-        if (card.rank === cards.JACK) {
             return;
         }
 
@@ -192,13 +224,23 @@ class LayMove extends Move {
             return;
         }
         
-        if (card.rank === cards.ACE && this.context.player.cards.length === 1) {
-            this.error = 'ace_end';
-            this.valid = false;
-            return;
-        }
+        if (card.suit === pile.suit || card.rank === pile.rank || pile.suit === cards.DRAGON ||
+            card.suit === cards.DRAGON || card.rank === cards.JACK) {
 
-        if (card.suit === pile.suit || card.rank === pile.rank || card.suit === cards.DRAGON) {
+            if (card.rank === cards.ACE && this.context.player.cards.length === 1) {
+                this.error = 'ace_end';
+                this.valid = false;
+                return;
+            }
+
+            if (card.rank === cards.QUEEN) {
+                this.queer = true
+            }
+
+            if (card.rank === cards.EIGHT) {
+                this.eights = true;
+            }
+
             return;
         }
 
@@ -207,7 +249,7 @@ class LayMove extends Move {
     }
 
     terminating () {
-        return !(this.not_terminating === true);
+        return this.queer !== true && this.eights !== true;
     }
 
     apply () {
@@ -245,7 +287,7 @@ class LayMove extends Move {
 
 }
 
-class SuitChangeMove extends Move {
+class QueerMove extends Move {
 
     constructor (turn, suit) {
         super(turn);
