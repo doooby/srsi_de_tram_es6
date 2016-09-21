@@ -120,7 +120,7 @@ var HB_APP = {
 
 
         } else {
-            this.printAlert(move.errorMessage());
+            this.printAlert(turn.game.t('bad_move.' + move.error));
 
         }
     }

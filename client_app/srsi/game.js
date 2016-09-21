@@ -65,26 +65,26 @@ export class Turn {
     }
 
     lay (card_i) {
-        let move = new LayMove(this, card_i);
-        move.process();
+        let move = new LayMove(this.player_i, card_i);
+        move.evaluate(this);
         return move;
     }
 
     draw () {
-        let move = new DrawMove(this);
-        move.process();
+        let move = new DrawMove(this.player_i);
+        move.evaluate(this);
         return move;
     }
 
     doNothing () {
-        let move = new NoMove(this);
-        move.process();
+        let move = new NoMove();
+        move.evaluate(this);
         return move;
     }
 
     selectQueenSuit (suit) {
         if (suit === undefined) suit = null;
-        return new QueerMove(this, suit);
+        return new QueerMove(suit);
     }
 
     finishTurn (move) {
@@ -149,15 +149,10 @@ export class Turn {
 
 class Move {
 
-    constructor (turn) {
-        this.context = turn;
+    constructor () {
         this.valid = true;
-        this.player_i = turn.player_i;
     }
 
-    errorMessage () {
-        return this.context.game.t('bad_move.' + this.error);
-    }
 
     terminating () {
         return true;
@@ -167,10 +162,15 @@ class Move {
 
 class DrawMove extends Move {
 
-    process () {
-        let stats = this.context.stats;
+    constructor (player_i) {
+        super();
+        this.player_i = player_i;
+    }
 
-        let pile = this.context.pileCard();
+    evaluate (context) {
+        let stats = context.stats;
+
+        let pile = context.pileCard();
         if (stats.continuance && pile.rank === cards.ACE) {
             this.error = 'ace';
             this.valid = false;
@@ -184,7 +184,7 @@ class DrawMove extends Move {
             this.continuance = true;
         }
 
-        if (this.to_take > this.context.cards_left) {
+        if (this.to_take > context.cards_left) {
             this.error = 'not_enough_cards';
             this.valid = false;
         }
@@ -207,22 +207,23 @@ class DrawMove extends Move {
 
 class LayMove extends Move {
 
-    constructor (turn, card_i) {
-        super(turn);
+    constructor (player_i, card_i) {
+        super();
+        this.player_i = player_i;
         this.card_i = card_i;
     }
 
-    process () {
-        let card = this.context.player.cards[this.card_i];
-        let pile = this.context.pileCard();
+    evaluate (context) {
+        let card = context.player.cards[this.card_i];
+        let pile = context.pileCard();
 
-        if (this.context.stats.attack && (!card.isAttack() && card.rank !== cards.TEN)) {
+        if (context.stats.attack && (!card.isAttack() && card.rank !== cards.TEN)) {
             this.error = 'attack';
             this.valid = false;
             return;
         }
 
-        if (this.context.stats.continuance && pile.rank === cards.ACE && card.rank !== cards.ACE) {
+        if (context.stats.continuance && pile.rank === cards.ACE && card.rank !== cards.ACE) {
             this.error = 'ace';
             this.valid = false;
             return;
@@ -237,7 +238,7 @@ class LayMove extends Move {
         if (card.suit === pile.suit || card.rank === pile.rank || pile.suit === cards.DRAGON ||
             card.suit === cards.DRAGON || card.rank === cards.JACK) {
 
-            if (card.rank === cards.ACE && this.context.player.cards.length === 1) {
+            if (card.rank === cards.ACE && context.player.cards.length === 1) {
                 this.error = 'ace_end';
                 this.valid = false;
                 return;
@@ -298,8 +299,8 @@ class LayMove extends Move {
 
 class QueerMove extends Move {
 
-    constructor (turn, suit) {
-        super(turn);
+    constructor (suit) {
+        super();
         this.suit = suit;
     }
 
@@ -313,10 +314,10 @@ class QueerMove extends Move {
 
 class NoMove extends Move {
 
-    process () {
-        let pile = this.context.pileCard();
+    evaluate (context) {
+        let pile = context.pileCard();
 
-        if (this.context.stats.continuance && pile.rank === cards.ACE) {
+        if (context.stats.continuance && pile.rank === cards.ACE) {
             return;
         }
 
