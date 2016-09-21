@@ -13,12 +13,11 @@ export class Game {
 
     }
 
-    isThereEnoughCards (needed) {
-        let in_pile = this.pile.length - 1;
-        if (needed >= this.deck.length && in_pile > 0) {
-            this.deck = this.deck.concat(this.pile.splice(0, in_pile));
-        }
-        return this.deck.length >= needed;
+    clearStats () {
+        this.continuance = false;
+        this.attack = 0;
+        this.eights = 0;
+        this.suit = 'kkk';
     }
 
     t (key) {
@@ -47,6 +46,8 @@ export class Player {
 export class Turn {
 
     constructor (game, player_i, stats) {
+        this.cards_left = game.deck.length + game.pile.length - 1;
+
         this.game = game;
         this.player_i = player_i;
         this.player = game.players[player_i];
@@ -143,6 +144,7 @@ class Move {
     constructor (turn) {
         this.context = turn;
         this.valid = true;
+        this.player_i = turn.player_i;
     }
 
     errorMessage () {
@@ -169,28 +171,28 @@ class DrawMove extends Move {
 
         this.to_take = 1;
         if (stats.attack > 0) this.to_take = stats.attack;
-        else if (stats.eights > 0) this.to_take = stats.eights;
-        if (!this.context.game.isThereEnoughCards(this.to_take)) {
+        else if (stats.eights > 0) {
+            this.to_take = stats.eights;
+            this.continuance = true;
+        }
+
+        if (this.to_take > this.context.cards_left) {
             this.error = 'not_enough_cards';
             this.valid = false;
         }
     }
 
-    apply () {
-        let stats = this.context.stats;
-        stats.continuance = false;
-
-        let cards_to_take = this.context.game.deck.splice(0, this.to_take);
-        this.context.player.cards = this.context.player.cards.concat(cards_to_take);
-
-        if (stats.attack > 0) {
-            stats.attack = 0;
-
-        } else if (stats.eights > 0) {
-            stats.eights = 0;
-            stats.continuance = true;
-
+    apply (game) {
+        let left_in_pile = game.pile.length - 1;
+        if (this.to_take >= game.deck.length && left_in_pile > 0) {
+            game.deck = game.deck.concat(game.pile.splice(0, left_in_pile));
         }
+
+        let player = game.players[this.player_i];
+        player.cards = player.cards.concat(game.deck.splice(0, this.to_take));
+
+        game.clearStats();
+        if (this.continuance) game.continuance = true;
     }
 
 }

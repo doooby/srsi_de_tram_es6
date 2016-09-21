@@ -99,9 +99,9 @@ describe('game rules', () => {
             let move = turn.draw();
             expect(move.valid).toBe(true);
             expect(move.terminating()).toBe(true);
-            move.apply();
-            expect(turn.stats.continuance).toBe(false);
-            expect(turn.player.cards.length).toBe(1);
+            move.apply(game);
+            expect(game.continuance).toBe(false);
+            expect(game.players[move.player_i].cards.length).toBe(1);
         });
 
         it('cannot do just nothing - only on ace', () => {
@@ -130,11 +130,11 @@ describe('game rules', () => {
             let move = turn.draw();
             expect(move.valid).toBe(true);
             expect(move.terminating()).toBe(true);
-            move.apply();
-            expect(turn.stats.continuance).toBe(false);
+            move.apply(game);
+            expect(game.continuance).toBe(false);
             expect(game.deck.length).toBe(1);
             expect(game.pile.length).toBe(1);
-            expect(turn.player.cards.length).toBe(1);
+            expect(game.players[move.player_i].cards.length).toBe(1);
         });
 
         it('simply draw - not enough', () => {
@@ -145,8 +145,6 @@ describe('game rules', () => {
             let move = turn.draw();
             expect(move.valid).toBe(false);
             expect(move.error).toBe('not_enough_cards');
-            expect(game.deck.length).toBe(0);
-            expect(game.pile.length).toBe(1);
         });
 
         it('can lay dragon on anything', () => {
@@ -195,12 +193,12 @@ describe('game rules', () => {
             let move = turn.draw();
             expect(move.valid).toBe(true);
             expect(move.terminating()).toBe(true);
-            move.apply();
-            expect(turn.stats.attack).toBe(0);
-            expect(turn.stats.continuance).toBe(false);
+            move.apply(game);
+            expect(game.attack).toBe(0);
+            expect(game.continuance).toBe(false);
             expect(game.deck.length).toBe(0);
             expect(game.pile.length).toBe(1);
-            expect(turn.player.cards.length).toBe(2);
+            expect(game.players[move.player_i].cards.length).toBe(2);
         });
 
         it('draw while attacked - not enough', () => {
@@ -406,10 +404,10 @@ describe('game rules', () => {
             move = turn.draw();
             expect(move.valid).toBe(true);
             expect(move.terminating()).toBe(true);
-            move.apply();
-            expect(turn.stats.continuance).toBe(true);
-            expect(turn.stats.eights).toBe(0);
-            expect(turn.player.cards.length).toBe(2);
+            move.apply(game);
+            expect(game.continuance).toBe(true);
+            expect(game.eights).toBe(0);
+            expect(game.players[move.player_i].cards.length).toBe(2);
         });
 
         it('multiple eights - not enough cards', () => {
@@ -421,8 +419,6 @@ describe('game rules', () => {
             let move = turn.draw();
             expect(move.valid).toBe(false);
             expect(move.error).toBe('not_enough_cards');
-            expect(game.pile.length).toBe(1);
-            expect(game.deck.length).toBe(1);
         });
 
     });
