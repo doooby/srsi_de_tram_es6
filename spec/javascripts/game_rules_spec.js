@@ -146,8 +146,8 @@ describe('game rules', () => {
             turn = new Turn(game, 0, stats_with({continuance: true}));
             move = turn.doNothing();
             expect(move).toBeValidMove();
-            move.apply();
-            expect(turn.stats.continuance).toBe(false);
+            move.apply(game);
+            expect(game.continuance).toBe(false);
         });
 
         it('simply draw', () => {

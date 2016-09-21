@@ -324,8 +324,8 @@ class NoMove extends Move {
         this.valid = false;
     }
 
-    apply () {
-        this.context.stats.continuance = false;
+    apply (game) {
+        game.clearStats();
     }
 
 }
