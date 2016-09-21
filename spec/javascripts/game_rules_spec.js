@@ -9,6 +9,45 @@ describe('game rules', () => {
     var game_at = HelperBuilder.anonymousGameAt;
     var stats_with = HelperBuilder.buildStats;
 
+    beforeEach(function() {
+        jasmine.addMatchers({
+
+            toBeValidMove: () => {return {compare: (move, termination) => {
+                if (termination === undefined) termination = true;
+
+                if (move.valid !== true) return {
+                    pass: false,
+                    message: 'Move is not valid, error=' + move.error
+                };
+
+                if (move.terminating() !== termination) return {
+                    pass: false,
+                    message: (termination ?
+                            'Expected move to terminate.' :
+                            'Expected move not to terminate.'
+                    )
+                };
+
+                return {pass: true};
+            }};},
+
+            toBeInvalidMove: () => {return {compare: (move, reason) => {
+                if (move.valid !== false) return {
+                    pass: false,
+                    message: 'Move should not be valid!'
+                };
+
+                if (move.error !== reason) return {
+                    pass: false,
+                    message: 'Expected move to fail because of "' + reason + '" but the error was "' + move.error + '".'
+                };
+
+                return {pass: true};
+            }};}
+
+        });
+    });
+
     describe('basics', () => {
 
         it('no matching suit or rank', () => {
@@ -18,8 +57,7 @@ describe('game rules', () => {
             });
             let turn = new Turn(game, 0);
             let move = turn.lay(0);
-            expect(move.valid).toBe(false);
-            expect(move.error).toBe('no_match');
+            expect(move).toBeInvalidMove('no_match');
         });
 
         it('matching suit', () => {
@@ -29,8 +67,7 @@ describe('game rules', () => {
             });
             let turn = new Turn(game, 0);
             let move = turn.lay(0);
-            expect(move.valid).toBe(true);
-            expect(move.terminating()).toBe(true);
+            expect(move).toBeValidMove();
         });
 
         it('matching rank', () => {
@@ -40,8 +77,7 @@ describe('game rules', () => {
             });
             let turn = new Turn(game, 0);
             let move = turn.lay(0);
-            expect(move.valid).toBe(true);
-            expect(move.terminating()).toBe(true);
+            expect(move).toBeValidMove();
         });
 
         it('nine on ace', () => {
@@ -52,8 +88,7 @@ describe('game rules', () => {
 
             let turn = new Turn(game, 0, stats_with({continuance: true}));
             let move = turn.lay(0);
-            expect(move.valid).toBe(false);
-            expect(move.error).toBe('ace');
+            expect(move).toBeInvalidMove('ace');
         });
 
         it('nine on ace - discontinued', () => {
@@ -64,8 +99,7 @@ describe('game rules', () => {
 
             let turn = new Turn(game, 0);
             let move = turn.lay(0);
-            expect(move.valid).toBe(true);
-            expect(move.terminating()).toBe(true);
+            expect(move).toBeValidMove();
         });
 
         it('ace on ace', () => {
@@ -76,8 +110,7 @@ describe('game rules', () => {
 
             let turn = new Turn(game, 0, stats_with({continuance: true}));
             let move = turn.lay(0);
-            expect(move.valid).toBe(true);
-            expect(move.terminating()).toBe(true);
+            expect(move).toBeValidMove();
         });
 
         it('cannot draw on ace', () => {
@@ -86,8 +119,7 @@ describe('game rules', () => {
             });
             let turn = new Turn(game, 0, stats_with({continuance: true}));
             let move = turn.draw();
-            expect(move.valid).toBe(false);
-            expect(move.error).toBe('ace');
+            expect(move).toBeInvalidMove('ace');
         });
 
         it('can draw on ace - discontinued', () => {
@@ -97,8 +129,7 @@ describe('game rules', () => {
             });
             let turn = new Turn(game, 0);
             let move = turn.draw();
-            expect(move.valid).toBe(true);
-            expect(move.terminating()).toBe(true);
+            expect(move).toBeValidMove();
             move.apply(game);
             expect(game.continuance).toBe(false);
             expect(game.players[move.player_i].cards.length).toBe(1);
@@ -110,13 +141,11 @@ describe('game rules', () => {
             });
             let turn = new Turn(game, 0);
             let move = turn.doNothing();
-            expect(move.valid).toBe(false);
-            expect(move.error).toBe('nothing');
+            expect(move).toBeInvalidMove('nothing');
 
             turn = new Turn(game, 0, stats_with({continuance: true}));
             move = turn.doNothing();
-            expect(move.valid).toBe(true);
-            expect(move.terminating()).toBe(true);
+            expect(move).toBeValidMove();
             move.apply();
             expect(turn.stats.continuance).toBe(false);
         });
@@ -128,8 +157,7 @@ describe('game rules', () => {
             });
             let turn = new Turn(game, 0);
             let move = turn.draw();
-            expect(move.valid).toBe(true);
-            expect(move.terminating()).toBe(true);
+            expect(move).toBeValidMove();
             move.apply(game);
             expect(game.continuance).toBe(false);
             expect(game.deck.length).toBe(1);
@@ -143,8 +171,7 @@ describe('game rules', () => {
             });
             let turn = new Turn(game, 0);
             let move = turn.draw();
-            expect(move.valid).toBe(false);
-            expect(move.error).toBe('not_enough_cards');
+            expect(move).toBeInvalidMove('not_enough_cards');
         });
 
         it('can lay dragon on anything', () => {
@@ -154,8 +181,7 @@ describe('game rules', () => {
             });
             let turn = new Turn(game, 0);
             let move = turn.lay(0);
-            expect(move.valid).toBe(true);
-            expect(move.terminating()).toBe(true);
+            expect(move).toBeValidMove();
         });
 
         it('can lay anything on dragon - discontinued', () => {
@@ -165,8 +191,7 @@ describe('game rules', () => {
             });
             let turn = new Turn(game, 0);
             let move = turn.lay(0);
-            expect(move.valid).toBe(true);
-            expect(move.terminating()).toBe(true);
+            expect(move).toBeValidMove();
         });
 
     });
@@ -180,8 +205,7 @@ describe('game rules', () => {
             });
             let turn = new Turn(game, 0, stats_with({continuance: true, attack: 2}));
             let move = turn.lay(0);
-            expect(move.valid).toBe(false);
-            expect(move.error).toBe('attack');
+            expect(move).toBeInvalidMove('attack');
         });
 
         it('draw while attacked', () => {
@@ -191,8 +215,7 @@ describe('game rules', () => {
             });
             let turn = new Turn(game, 0, stats_with({continuance: true, attack: 2}));
             let move = turn.draw();
-            expect(move.valid).toBe(true);
-            expect(move.terminating()).toBe(true);
+            expect(move).toBeValidMove();
             move.apply(game);
             expect(game.attack).toBe(0);
             expect(game.continuance).toBe(false);
@@ -207,8 +230,7 @@ describe('game rules', () => {
             });
             let turn = new Turn(game, 0, stats_with({continuance: true, attack: 2}));
             let move = turn.draw();
-            expect(move.valid).toBe(false);
-            expect(move.error).toBe('not_enough_cards');
+            expect(move).toBeInvalidMove('not_enough_cards');
         });
 
         it('seven attacks with 2', () => {
@@ -218,8 +240,7 @@ describe('game rules', () => {
             });
             let turn = new Turn(game, 0);
             let move = turn.lay(0);
-            expect(move.valid).toBe(true);
-            expect(move.terminating()).toBe(true);
+            expect(move).toBeValidMove();
             move.apply();
             expect(turn.stats.attack).toBe(2);
         });
@@ -231,8 +252,7 @@ describe('game rules', () => {
             });
             let turn = new Turn(game, 0, stats_with({continuance: true, attack: 2}));
             let move = turn.lay(0);
-            expect(move.valid).toBe(true);
-            expect(move.terminating()).toBe(true);
+            expect(move).toBeValidMove();
             move.apply();
             expect(turn.stats.attack).toBe(2);
         });
@@ -244,8 +264,7 @@ describe('game rules', () => {
             });
             let turn = new Turn(game, 0, stats_with({continuance: true, attack: 2}));
             let move = turn.lay(0);
-            expect(move.valid).toBe(true);
-            expect(move.terminating()).toBe(true);
+            expect(move).toBeValidMove();
             move.apply();
             expect(turn.stats.attack).toBe(6);
         });
@@ -257,8 +276,7 @@ describe('game rules', () => {
             });
             let turn = new Turn(game, 0);
             let move = turn.lay(0);
-            expect(move.valid).toBe(true);
-            expect(move.terminating()).toBe(true);
+            expect(move).toBeValidMove();
             move.apply();
             expect(turn.stats.attack).toBe(5);
         });
@@ -274,8 +292,7 @@ describe('game rules', () => {
             });
             let turn = new Turn(game, 0, stats_with({attack: 2}));
             let move = turn.lay(0);
-            expect(move.valid).toBe(true);
-            expect(move.terminating()).toBe(true);
+            expect(move).toBeValidMove();
             move.apply();
             expect(turn.stats.attack).toBe(0);
         });
@@ -287,8 +304,7 @@ describe('game rules', () => {
             });
             let turn = new Turn(game, 0, stats_with({continuance: true}));
             let move = turn.lay(0);
-            expect(move.valid).toBe(false);
-            expect(move.error).toBe('attack_on_ten');
+            expect(move).toBeInvalidMove('attack_on_ten');
         });
 
         it('no attack on ten - discontinued', () => {
@@ -298,8 +314,7 @@ describe('game rules', () => {
             });
             let turn = new Turn(game, 0);
             let move = turn.lay(0);
-            expect(move.valid).toBe(false);
-            expect(move.error).toBe('attack_on_ten');
+            expect(move).toBeInvalidMove('attack_on_ten');
         });
 
     });
@@ -313,8 +328,7 @@ describe('game rules', () => {
             });
             let turn = new Turn(game, 0);
             let move = turn.lay(0);
-            expect(move.valid).toBe(true);
-            expect(move.terminating()).toBe(true);
+            expect(move).toBeValidMove();
         });
 
         it('queen - no change', () => {
@@ -324,15 +338,13 @@ describe('game rules', () => {
             });
             let turn = new Turn(game, 0);
             let move = turn.lay(0);
-            expect(move.valid).toBe(true);
-            expect(move.terminating()).toBe(false);
+            expect(move).toBeValidMove(false);
             expect(turn.finishTurn(move)).toBe(turn);
             expect(turn.last_move).toBe(move);
             expect(move.queer).toBe(true);
 
             move = turn.selectQueenSuit();
-            expect(move.valid).toBe(true);
-            expect(move.terminating()).toBe(true);
+            expect(move).toBeValidMove();
             move.apply();
             expect(turn.stats.suit).toBe(null);
             expect(turn.stats.continuance).toBe(true);
@@ -346,16 +358,14 @@ describe('game rules', () => {
             });
             let turn = new Turn(game, 0);
             let move = turn.lay(0);
-            expect(move.valid).toBe(true);
-            expect(move.terminating()).toBe(false);
+            expect(move).toBeValidMove(false);
             expect(turn.finishTurn(move)).toBe(turn);
             expect(turn.last_move).toBe(move);
             expect(move.queer).toBe(true);
 
             let new_suit = cards.BELLS;
             move = turn.selectQueenSuit(new_suit);
-            expect(move.valid).toBe(true);
-            expect(move.terminating()).toBe(true);
+            expect(move).toBeValidMove();
             move.apply();
             expect(turn.stats.suit).toBe(new_suit);
             expect(turn.stats.continuance).toBe(true);
@@ -373,8 +383,7 @@ describe('game rules', () => {
             });
             let turn = new Turn(game, 0);
             let move = turn.lay(0);
-            expect(move.valid).toBe(false);
-            expect(move.error).toBe('ace_end');
+            expect(move).toBeInvalidMove('ace_end');
         });
 
         it('lay multiple eights', () => {
@@ -384,8 +393,7 @@ describe('game rules', () => {
             });
             let turn = new Turn(game, 0);
             let move = turn.lay(0);
-            expect(move.valid).toBe(true);
-            expect(move.terminating()).toBe(false);
+            expect(move).toBeValidMove(false);
             expect(turn.finishTurn(move)).toBe(turn);
             expect(turn.last_move).toBe(move);
             expect(move.eights).toBe(true);
@@ -393,8 +401,7 @@ describe('game rules', () => {
             expect(turn.player.cards.length).toBe(1);
 
             move = turn.lay(0);
-            expect(move.valid).toBe(true);
-            expect(move.terminating()).toBe(false);
+            expect(move).toBeValidMove(false);
             expect(turn.finishTurn(move)).toBe(turn);
             expect(turn.last_move).toBe(move);
             expect(move.eights).toBe(true);
@@ -402,8 +409,7 @@ describe('game rules', () => {
             expect(turn.player.cards.length).toBe(0);
 
             move = turn.draw();
-            expect(move.valid).toBe(true);
-            expect(move.terminating()).toBe(true);
+            expect(move).toBeValidMove();
             move.apply(game);
             expect(game.continuance).toBe(true);
             expect(game.eights).toBe(0);
@@ -417,8 +423,7 @@ describe('game rules', () => {
             });
             let turn = new Turn(game, 0, stats_with({continuance: true, eights: 3}));
             let move = turn.draw();
-            expect(move.valid).toBe(false);
-            expect(move.error).toBe('not_enough_cards');
+            expect(move).toBeInvalidMove('not_enough_cards');
         });
 
     });
@@ -435,8 +440,7 @@ describe('game rules', () => {
 
             let turn = new Turn(game, 0, stats_with({continuance: true}));
             let move = turn.lay(0);
-            expect(move.valid).toBe(false);
-            expect(move.error).toBe('ace');
+            expect(move).toBeInvalidMove('ace');
         });
 
         // couldn't lay a seven on the dragon
@@ -448,7 +452,7 @@ describe('game rules', () => {
 
             let turn = new Turn(game, 0, stats_with({continuance: true, attack: 5}));
             let move = turn.lay(0);
-            expect(move.valid).toBe(true);
+            expect(move).toBeValidMove();
         });
 
     })
