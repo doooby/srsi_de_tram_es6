@@ -100,7 +100,11 @@ export class Turn {
         } else {
             let next_player_i = this.player_i + 1;
             if (next_player_i === this.game.players.length) next_player_i = 0;
-            return new Turn(this.game, next_player_i, Object.assign({}, this.stats));
+            let new_stats = {};
+            ['continuance', 'attack', 'suit', 'eights'].forEach(a => {
+                new_stats[a] = this.game[a];
+            });
+            return new Turn(this.game, next_player_i, new_stats);
 
         }
     }
@@ -299,10 +303,10 @@ class QueerMove extends Move {
         this.suit = suit;
     }
 
-    apply () {
-        let stats = this.context.stats;
-        stats.suit = this.suit;
-        stats.continuance = true;
+    apply (game) {
+        game.clearStats();
+        game.suit = this.suit;
+        game.continuance = true;
     }
 
 }

@@ -371,9 +371,9 @@ describe('game rules', () => {
             let new_suit = cards.BELLS;
             move = turn.selectQueenSuit(new_suit);
             expect(move).toBeValidMove();
-            move.apply(game);
-            expect(turn.stats.suit).toBe(new_suit);
-            expect(turn.stats.continuance).toBe(true);
+            turn = turn.finishTurn(move);
+            expect(game.suit).toBe(new_suit);
+            expect(game.continuance).toBe(true);
             expect(turn.pileCard().suit).toBe(new_suit);
         });
 
