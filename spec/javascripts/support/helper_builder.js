@@ -12,6 +12,13 @@ var HelperBuilder = {
         if (options['player1']) game.players[0].cards = options['player1'];
         if (options['player2']) game.players[1].cards = options['player2'];
 
+        if (options['stats']) {
+            ['continuance', 'attack', 'suit', 'eights'].forEach(a => {
+                let val = options['stats'][a];
+                if (val !== undefined) game[a] = val;
+            });
+        }
+
         return game;
     },
 

@@ -7,6 +7,7 @@ export class Game {
         this.players = players;
         this.players.forEach( p => p.cards = deck.splice(0, 6) );
         this.pile = this.deck.splice(0, 1);
+        this.clearStats();
     }
 
     propagate (move) {
@@ -17,7 +18,7 @@ export class Game {
         this.continuance = false;
         this.attack = 0;
         this.eights = 0;
-        this.suit = 'kkk';
+        this.suit = null;
     }
 
     t (key) {
@@ -88,9 +89,12 @@ export class Turn {
 
     finishTurn (move) {
         this.game.propagate(move);
-        move.apply();
+        move.apply(this.game);
         if (!move.terminating()) {
             this.last_move = move;
+            ['continuance', 'attack', 'suit', 'eights'].forEach(a => {
+                this.stats[a] = this.game[a];
+            });
             return this;
 
         } else {
@@ -254,37 +258,36 @@ class LayMove extends Move {
         return this.queer !== true && this.eights !== true;
     }
 
-    apply () {
-        let card = this.context.player.cards.splice(this.card_i, 1)[0];
-        this.context.game.pile.push(card);
+    apply (game) {
+        let card = game.players[this.player_i].cards.splice(this.card_i, 1)[0];
+        game.pile.push(card);
 
-        let stats = this.context.stats;
-        stats.continuance = true;
-        stats.suit = null;
+        let attack = game.attack, eights = game.eights;
+        game.clearStats();
+        game.continuance = true;
 
         switch (card.rank) {
 
             case cards.SEVEN:
-                stats.attack += 2;
+                game.attack = attack + 2;
                 break;
 
             case cards.EIGHT:
-                stats.eights += 1;
+                game.eights = eights + 1;
                 break;
 
             case cards.TEN:
-                stats.attack = 0;
+                game.attack = 0;
                 break;
 
             case cards.KING:
-                if (card.suit === cards.LEAVES) stats.attack += 4;
+                game.attack = attack + (card.suit === cards.LEAVES ? 4 : 0);
                 break;
 
             case cards.DRAGON:
-                stats.attack += 5;
+                game.attack = attack + 5;
                 break;
         }
-
     }
 
 }

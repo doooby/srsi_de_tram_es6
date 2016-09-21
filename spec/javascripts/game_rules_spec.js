@@ -211,7 +211,8 @@ describe('game rules', () => {
         it('draw while attacked', () => {
             let game = game_at({
                 deck: [new Card(0)],
-                pile: [new Card(0), new Card(cards.HEARTS | cards.SEVEN)]
+                pile: [new Card(0), new Card(cards.HEARTS | cards.SEVEN)],
+                stats: {continuance: true, attack: 2}
             });
             let turn = new Turn(game, 0, stats_with({continuance: true, attack: 2}));
             let move = turn.draw();
@@ -241,32 +242,34 @@ describe('game rules', () => {
             let turn = new Turn(game, 0);
             let move = turn.lay(0);
             expect(move).toBeValidMove();
-            move.apply();
-            expect(turn.stats.attack).toBe(2);
+            move.apply(game);
+            expect(game.attack).toBe(2);
         });
 
         it('king only returns', () => {
             let game = game_at({
                 pile: [new Card(cards.HEARTS | cards.SEVEN)],
-                player1: [new Card(cards.HEARTS | cards.KING)]
+                player1: [new Card(cards.HEARTS | cards.KING)],
+                stats: {continuance: true, attack: 2}
             });
             let turn = new Turn(game, 0, stats_with({continuance: true, attack: 2}));
             let move = turn.lay(0);
             expect(move).toBeValidMove();
-            move.apply();
-            expect(turn.stats.attack).toBe(2);
+            move.apply(game);
+            expect(game.attack).toBe(2);
         });
 
         it('king of leaves attacks with 4', () => {
             let game = game_at({
                 pile: [new Card(cards.LEAVES | cards.SEVEN)],
-                player1: [new Card(cards.LEAVES | cards.KING)]
+                player1: [new Card(cards.LEAVES | cards.KING)],
+                stats: {continuance: true, attack: 2}
             });
             let turn = new Turn(game, 0, stats_with({continuance: true, attack: 2}));
             let move = turn.lay(0);
             expect(move).toBeValidMove();
-            move.apply();
-            expect(turn.stats.attack).toBe(6);
+            move.apply(game);
+            expect(game.attack).toBe(6);
         });
 
         it('dragon attacks with 5', () => {
@@ -277,8 +280,8 @@ describe('game rules', () => {
             let turn = new Turn(game, 0);
             let move = turn.lay(0);
             expect(move).toBeValidMove();
-            move.apply();
-            expect(turn.stats.attack).toBe(5);
+            move.apply(game);
+            expect(game.attack).toBe(5);
         });
 
     });
@@ -288,19 +291,21 @@ describe('game rules', () => {
         it('ten clears attack', () => {
             let game = game_at({
                 pile: [new Card(cards.HEARTS | cards.SEVEN)],
-                player1: [new Card(cards.HEARTS | cards.TEN)]
+                player1: [new Card(cards.HEARTS | cards.TEN)],
+                stats: {continuance: true, attack: 2}
             });
             let turn = new Turn(game, 0, stats_with({attack: 2}));
             let move = turn.lay(0);
             expect(move).toBeValidMove();
-            move.apply();
-            expect(turn.stats.attack).toBe(0);
+            move.apply(game);
+            expect(game.attack).toBe(0);
         });
 
         it('no attack on ten', () => {
             let game = game_at({
                 pile: [new Card(cards.HEARTS | cards.TEN)],
-                player1: [new Card(cards.HEARTS | cards.SEVEN)]
+                player1: [new Card(cards.HEARTS | cards.SEVEN)],
+                stats: {continuance: true}
             });
             let turn = new Turn(game, 0, stats_with({continuance: true}));
             let move = turn.lay(0);
@@ -345,9 +350,9 @@ describe('game rules', () => {
 
             move = turn.selectQueenSuit();
             expect(move).toBeValidMove();
-            move.apply();
-            expect(turn.stats.suit).toBe(null);
-            expect(turn.stats.continuance).toBe(true);
+            move.apply(game);
+            expect(game.suit).toBe(null);
+            expect(game.continuance).toBe(true);
             expect(turn.pileCard()).toBe(game.pile[1]);
         });
 
@@ -366,7 +371,7 @@ describe('game rules', () => {
             let new_suit = cards.BELLS;
             move = turn.selectQueenSuit(new_suit);
             expect(move).toBeValidMove();
-            move.apply();
+            move.apply(game);
             expect(turn.stats.suit).toBe(new_suit);
             expect(turn.stats.continuance).toBe(true);
             expect(turn.pileCard().suit).toBe(new_suit);
@@ -397,7 +402,7 @@ describe('game rules', () => {
             expect(turn.finishTurn(move)).toBe(turn);
             expect(turn.last_move).toBe(move);
             expect(move.eights).toBe(true);
-            expect(turn.stats.eights).toBe(1);
+            expect(game.eights).toBe(1);
             expect(turn.player.cards.length).toBe(1);
 
             move = turn.lay(0);
@@ -405,7 +410,7 @@ describe('game rules', () => {
             expect(turn.finishTurn(move)).toBe(turn);
             expect(turn.last_move).toBe(move);
             expect(move.eights).toBe(true);
-            expect(turn.stats.eights).toBe(2);
+            expect(game.eights).toBe(2);
             expect(turn.player.cards.length).toBe(0);
 
             move = turn.draw();
