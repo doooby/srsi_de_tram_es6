@@ -2,8 +2,6 @@ import {cards, Card} from './deck';
 
 export class Game {
 
-    static statuses = ['continuance', 'attack', 'suit', 'eights'];
-
     constructor (deck, players) {
         this.deck = deck;
         this.players = players;
@@ -30,6 +28,8 @@ export class Game {
     }
 
 }
+
+Game.statuses = ['continuance', 'attack', 'suit', 'eights'];
 
 var _translation_finder = (data, keys, i) => {
     if (typeof data !== 'object') return undefined;
