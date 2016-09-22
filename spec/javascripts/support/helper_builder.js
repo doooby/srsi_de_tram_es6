@@ -13,7 +13,7 @@ var HelperBuilder = {
         if (options['player2']) game.players[1].cards = options['player2'];
 
         if (options['stats']) {
-            ['continuance', 'attack', 'suit', 'eights'].forEach(a => {
+            Game.statuses.forEach(a => {
                 let val = options['stats'][a];
                 if (val !== undefined) game[a] = val;
             });
@@ -24,7 +24,7 @@ var HelperBuilder = {
 
     buildStats: function (changes) {
         let stats = Turn.clearStats();
-        ['continuance', 'attack', 'suit', 'eights'].forEach(a => {
+        Game.statuses.forEach(a => {
             if (changes[a] !== undefined) stats[a] = changes[a];
         });
         return stats;

@@ -403,7 +403,7 @@ describe('game rules', () => {
             expect(turn.last_move).toBe(move);
             expect(move.eights).toBe(true);
             expect(game.eights).toBe(1);
-            expect(turn.player.cards.length).toBe(1);
+            expect(game.players[move.player_i].cards.length).toBe(1);
 
             move = turn.lay(0);
             expect(move).toBeValidMove(false);
@@ -411,7 +411,7 @@ describe('game rules', () => {
             expect(turn.last_move).toBe(move);
             expect(move.eights).toBe(true);
             expect(game.eights).toBe(2);
-            expect(turn.player.cards.length).toBe(0);
+            expect(game.players[move.player_i].cards.length).toBe(0);
 
             move = turn.draw();
             expect(move).toBeValidMove();

@@ -2,6 +2,8 @@ import {cards, Card} from './deck';
 
 export class Game {
 
+    static statuses = ['continuance', 'attack', 'suit', 'eights'];
+
     constructor (deck, players) {
         this.deck = deck;
         this.players = players;
@@ -46,22 +48,38 @@ export class Player {
 
 export class Turn {
 
-    constructor (game, player_i, stats) {
-        this.cards_left = game.deck.length + game.pile.length - 1;
 
+
+    constructor (game, player_i, stats) {
         this.game = game;
         this.player_i = player_i;
-        this.player = game.players[player_i];
-        this.stats = (stats === undefined ? Turn.clearStats() : stats);
+        this.statts = (stats === undefined ? Turn.clearStats() : stats);
     }
 
     pileCard () {
         let real = this.game.pile[this.game.pile.length - 1];
-        if (this.stats.suit !== null) {
-            return new Card(this.stats.suit | real.rank);
+        let suit_change = this.status('suit');
+        if (suit_change !== null) {
+            return new Card(suit_change | real.rank);
         } else {
             return real;
         }
+    }
+
+    cards_left () {
+        return this.game.deck.length + this.game.pile.length - 1;
+    }
+
+    playerCards () {
+        return this.game.players[this.player_i].cards;
+    }
+
+    status (key) {
+        return this.statts[key];
+    }
+
+    setStatus (key, value) {
+        this.statts[key] = value;
     }
 
     lay (card_i) {
@@ -92,8 +110,8 @@ export class Turn {
         move.apply(this.game);
         if (!move.terminating()) {
             this.last_move = move;
-            ['continuance', 'attack', 'suit', 'eights'].forEach(a => {
-                this.stats[a] = this.game[a];
+            Game.statuses.forEach(a => {
+                this.setStatus(a, this.game[a]);
             });
             return this;
 
@@ -101,7 +119,7 @@ export class Turn {
             let next_player_i = this.player_i + 1;
             if (next_player_i === this.game.players.length) next_player_i = 0;
             let new_stats = {};
-            ['continuance', 'attack', 'suit', 'eights'].forEach(a => {
+            Game.statuses.forEach(a => {
                 new_stats[a] = this.game[a];
             });
             return new Turn(this.game, next_player_i, new_stats);
@@ -116,15 +134,16 @@ export class Turn {
             return [];
         }
 
-        let last_is_ace = this.player.cards.length ===1 && this.player.cards[0].rank === cards.ACE;
+        let player_cards = this.playerCards();
+        let last_is_ace = player_cards.length === 1 && player_cards[0].rank === cards.ACE;
 
-        if (this.stats.continuance) {
+        if (this.status('continuance')) {
 
             if (last_is_ace) return ['stay'];
             else {
 
                 if (this.pileCard().rank === cards.ACE) return ['stay', 'lay'];
-                if (this.stats.attack > 0) return ['devour', 'lay'];
+                if (this.status('attack') > 0) return ['devour', 'lay'];
             }
 
         } else {
@@ -168,23 +187,22 @@ class DrawMove extends Move {
     }
 
     evaluate (context) {
-        let stats = context.stats;
-
         let pile = context.pileCard();
-        if (stats.continuance && pile.rank === cards.ACE) {
+        if (context.status('continuance') && pile.rank === cards.ACE) {
             this.error = 'ace';
             this.valid = false;
             return;
         }
 
         this.to_take = 1;
-        if (stats.attack > 0) this.to_take = stats.attack;
-        else if (stats.eights > 0) {
-            this.to_take = stats.eights;
+        let attack = context.status('attack'), eights = context.status('eights');
+        if (attack > 0) this.to_take = attack;
+        else if (eights > 0) {
+            this.to_take = eights;
             this.continuance = true;
         }
 
-        if (this.to_take > context.cards_left) {
+        if (this.to_take > context.cards_left()) {
             this.error = 'not_enough_cards';
             this.valid = false;
         }
@@ -214,16 +232,16 @@ class LayMove extends Move {
     }
 
     evaluate (context) {
-        let card = context.player.cards[this.card_i];
+        let card = context.playerCards()[this.card_i];
         let pile = context.pileCard();
 
-        if (context.stats.attack && (!card.isAttack() && card.rank !== cards.TEN)) {
+        if (context.status('attack') > 0 && (!card.isAttack() && card.rank !== cards.TEN)) {
             this.error = 'attack';
             this.valid = false;
             return;
         }
 
-        if (context.stats.continuance && pile.rank === cards.ACE && card.rank !== cards.ACE) {
+        if (context.status('continuance') && pile.rank === cards.ACE && card.rank !== cards.ACE) {
             this.error = 'ace';
             this.valid = false;
             return;
@@ -238,7 +256,7 @@ class LayMove extends Move {
         if (card.suit === pile.suit || card.rank === pile.rank || pile.suit === cards.DRAGON ||
             card.suit === cards.DRAGON || card.rank === cards.JACK) {
 
-            if (card.rank === cards.ACE && context.player.cards.length === 1) {
+            if (card.rank === cards.ACE && context.playerCards().length === 1) {
                 this.error = 'ace_end';
                 this.valid = false;
                 return;
@@ -317,7 +335,7 @@ class NoMove extends Move {
     evaluate (context) {
         let pile = context.pileCard();
 
-        if (context.stats.continuance && pile.rank === cards.ACE) {
+        if (context.status('continuance') && pile.rank === cards.ACE) {
             return;
         }
 
