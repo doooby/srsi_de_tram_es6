@@ -53,7 +53,7 @@ describe('possible moves', () => {
             player1: [new Card(cards.HEARTS | cards.QUEEN)]
         }));
         let turn = new Turn(game, 0);
-        turn.finishTurn(turn.lay(0));
+        turn.finishMove(turn.lay(0), game);
         expect(turn.possibleActions()).toEqual(['queer']);
     });
 
@@ -63,7 +63,7 @@ describe('possible moves', () => {
             player1: [new Card(cards.HEARTS | cards.EIGHT)]
         }));
         let turn = new Turn(game, 0);
-        turn.finishTurn(turn.lay(0));
+        turn.finishMove(turn.lay(0), game);
         expect(turn.possibleActions()).toEqual(['draw', 'lay']);
     });
 

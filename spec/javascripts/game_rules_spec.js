@@ -132,7 +132,7 @@ describe('game rules', () => {
             let turn = new Turn(game, 0);
             let move = turn.draw();
             expect(move).toBeValidMove();
-            move.apply(game);
+            turn.finishMove(move, game);
             expect(game.continuance).toBe(false);
             expect(game.players[move.player_i].cards.length).toBe(1);
         });
@@ -149,7 +149,7 @@ describe('game rules', () => {
             turn = new Turn(game, 0);
             move = turn.doNothing();
             expect(move).toBeValidMove();
-            move.apply(game);
+            turn.finishMove(move, game);
             expect(game.continuance).toBe(false);
         });
 
@@ -161,7 +161,7 @@ describe('game rules', () => {
             let turn = new Turn(game, 0);
             let move = turn.draw();
             expect(move).toBeValidMove();
-            move.apply(game);
+            turn.finishMove(move, game);
             expect(game.continuance).toBe(false);
             expect(game.deck.length).toBe(1);
             expect(game.pile.length).toBe(1);
@@ -221,7 +221,7 @@ describe('game rules', () => {
             let turn = new Turn(game, 0);
             let move = turn.draw();
             expect(move).toBeValidMove();
-            move.apply(game);
+            turn.finishMove(move, game);
             expect(game.attack).toBe(0);
             expect(game.continuance).toBe(false);
             expect(game.deck.length).toBe(0);
@@ -247,7 +247,7 @@ describe('game rules', () => {
             let turn = new Turn(game, 0);
             let move = turn.lay(0);
             expect(move).toBeValidMove();
-            move.apply(game);
+            turn.finishMove(move, game);
             expect(game.attack).toBe(2);
         });
 
@@ -260,7 +260,7 @@ describe('game rules', () => {
             let turn = new Turn(game, 0);
             let move = turn.lay(0);
             expect(move).toBeValidMove();
-            move.apply(game);
+            turn.finishMove(move, game);
             expect(game.attack).toBe(2);
         });
 
@@ -273,7 +273,7 @@ describe('game rules', () => {
             let turn = new Turn(game, 0);
             let move = turn.lay(0);
             expect(move).toBeValidMove();
-            move.apply(game);
+            turn.finishMove(move, game);
             expect(game.attack).toBe(6);
         });
 
@@ -285,7 +285,7 @@ describe('game rules', () => {
             let turn = new Turn(game, 0);
             let move = turn.lay(0);
             expect(move).toBeValidMove();
-            move.apply(game);
+            turn.finishMove(move, game);
             expect(game.attack).toBe(5);
         });
 
@@ -302,7 +302,7 @@ describe('game rules', () => {
             let turn = new Turn(game, 0);
             let move = turn.lay(0);
             expect(move).toBeValidMove();
-            move.apply(game);
+            turn.finishMove(move, game);
             expect(game.attack).toBe(0);
         });
 
@@ -349,13 +349,13 @@ describe('game rules', () => {
             let turn = new Turn(game, 0);
             let move = turn.lay(0);
             expect(move).toBeValidMove(false);
-            expect(turn.finishTurn(move)).toBe(turn);
-            expect(turn.last_move).toBe(move);
+            expect(turn.finishMove(move, game)).toBe(false);
+            expect(turn.lastMove()).toBe(move);
             expect(move.queer).toBe(true);
 
             move = turn.selectQueenSuit();
             expect(move).toBeValidMove();
-            move.apply(game);
+            turn.finishMove(move, game);
             expect(game.suit).toBe(null);
             expect(game.continuance).toBe(true);
             expect(turn.pileCard()).toBe(game.pile[1]);
@@ -369,17 +369,16 @@ describe('game rules', () => {
             let turn = new Turn(game, 0);
             let move = turn.lay(0);
             expect(move).toBeValidMove(false);
-            expect(turn.finishTurn(move)).toBe(turn);
-            expect(turn.last_move).toBe(move);
+            expect(turn.finishMove(move, game)).toBe(false);
+            expect(turn.lastMove()).toBe(move);
             expect(move.queer).toBe(true);
 
             let new_suit = cards.BELLS;
             move = turn.selectQueenSuit(new_suit);
             expect(move).toBeValidMove();
-            turn = turn.finishTurn(move);
+            expect(turn.finishMove(move, game)).toBe(true);
             expect(game.suit).toBe(new_suit);
             expect(game.continuance).toBe(true);
-            expect(turn.pileCard().suit).toBe(new_suit);
         });
 
     });
@@ -404,23 +403,23 @@ describe('game rules', () => {
             let turn = new Turn(game, 0);
             let move = turn.lay(0);
             expect(move).toBeValidMove(false);
-            expect(turn.finishTurn(move)).toBe(turn);
-            expect(turn.last_move).toBe(move);
+            expect(turn.finishMove(move, game)).toBe(false);
+            expect(turn.lastMove()).toBe(move);
             expect(move.eights).toBe(true);
             expect(game.eights).toBe(1);
             expect(game.players[move.player_i].cards.length).toBe(1);
 
             move = turn.lay(0);
             expect(move).toBeValidMove(false);
-            expect(turn.finishTurn(move)).toBe(turn);
-            expect(turn.last_move).toBe(move);
+            expect(turn.finishMove(move, game)).toBe(false);
+            expect(turn.lastMove()).toBe(move);
             expect(move.eights).toBe(true);
             expect(game.eights).toBe(2);
             expect(game.players[move.player_i].cards.length).toBe(0);
 
             move = turn.draw();
             expect(move).toBeValidMove();
-            move.apply(game);
+            expect(turn.finishMove(move, game)).toBe(true);
             expect(game.continuance).toBe(true);
             expect(game.eights).toBe(0);
             expect(game.players[move.player_i].cards.length).toBe(2);

@@ -116,7 +116,7 @@ var HB_APP = {
         }
 
         if (move.valid) {
-            this.printTurn(turn.finishTurn(move));
+            this.printTurn(turn.finishMove(move, turn.game));
 
 
         } else {

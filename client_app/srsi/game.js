@@ -10,8 +10,13 @@ export class Game {
         this.clearStats();
     }
 
-    propagate (move) {
+    move (move) {
+        move.apply(this);
+    }
 
+    endTurn (player_i) {
+        let next_player_i = player_i + 1;
+        if (next_player_i === this.players.length) next_player_i = 0;
     }
 
     clearStats () {
@@ -49,13 +54,18 @@ export class Player {
 export class Turn {
 
     constructor (game, player_i) {
+        this.player_i = player_i;
+        this.moves = [];
+        this.setFromGame(game);
+
+        this.game = game;
+    }
+
+    setFromGame (game) {
         this.deck = Object.assign([], game.deck);
         this.pile = Object.assign([], game.pile);
         this.players = game.players.map(p => p.cards);
-        this.player_i = player_i;
         Game.statuses.forEach(s => this[s] = game[s]);
-
-        this.game = game;
     }
 
     pileCard () {
@@ -84,6 +94,10 @@ export class Turn {
         this[key] = value;
     }
 
+    lastMove () {
+        return this.moves[this.moves.length - 1];
+    }
+
     lay (card_i) {
         let move = new LayMove(this.player_i, card_i);
         move.evaluate(this);
@@ -97,38 +111,36 @@ export class Turn {
     }
 
     doNothing () {
-        let move = new NoMove();
+        let move = new NoMove(this.player_i);
         move.evaluate(this);
         return move;
     }
 
     selectQueenSuit (suit) {
         if (suit === undefined) suit = null;
-        return new QueerMove(suit);
+        return new QueerMove(this.player_i, suit);
     }
 
-    finishTurn (move) {
-        this.game.propagate(move);
-        move.apply(this.game);
-        if (!move.terminating()) {
-            this.last_move = move;
-            Game.statuses.forEach(a => {
-                this.setStatus(a, this.game[a]);
-            });
-            return this;
+    finishMove (move, game) {
+        this.moves.push(move);
+        this.game.move(move);
+
+        if (move.terminating()) {
+            this.game.endTurn(this.player_i);
+            return true;
 
         } else {
-            let next_player_i = this.player_i + 1;
-            if (next_player_i === this.game.players.length) next_player_i = 0;
-            return new Turn(this.game, next_player_i);
+            this.setFromGame(game);
+            return false;
 
         }
     }
 
     possibleActions () {
-        if (this.last_move) {
-            if (this.last_move.queer) return ['queer'];
-            else if (this.last_move.eights) return ['draw', 'lay'];
+        let last_move = this.lastMove();
+        if (last_move) {
+            if (last_move.queer) return ['queer'];
+            else if (last_move.eights) return ['draw', 'lay'];
             return [];
         }
 
@@ -166,8 +178,9 @@ export class Turn {
 
 class Move {
 
-    constructor () {
+    constructor (player_i) {
         this.valid = true;
+        this.player_i = player_i;
     }
 
 
@@ -178,11 +191,6 @@ class Move {
 }
 
 class DrawMove extends Move {
-
-    constructor (player_i) {
-        super();
-        this.player_i = player_i;
-    }
 
     evaluate (context) {
         let pile = context.pileCard();
@@ -224,8 +232,7 @@ class DrawMove extends Move {
 class LayMove extends Move {
 
     constructor (player_i, card_i) {
-        super();
-        this.player_i = player_i;
+        super(player_i);
         this.card_i = card_i;
     }
 
@@ -315,8 +322,8 @@ class LayMove extends Move {
 
 class QueerMove extends Move {
 
-    constructor (suit) {
-        super();
+    constructor (player_i, suit) {
+        super(player_i);
         this.suit = suit;
     }
 
