@@ -48,12 +48,14 @@ export class Player {
 
 export class Turn {
 
-
-
-    constructor (game, player_i, stats) {
-        this.game = game;
+    constructor (game, player_i) {
+        this.deck = Object.assign([], game.deck);
+        this.pile = Object.assign([], game.pile);
+        this.players = game.players.map(p => p.cards);
         this.player_i = player_i;
-        this.statts = (stats === undefined ? Turn.clearStats() : stats);
+        Game.statuses.forEach(s => this[s] = game[s]);
+
+        this.game = game;
     }
 
     pileCard () {
@@ -75,11 +77,11 @@ export class Turn {
     }
 
     status (key) {
-        return this.statts[key];
+        return this[key];
     }
 
     setStatus (key, value) {
-        this.statts[key] = value;
+        this[key] = value;
     }
 
     lay (card_i) {
@@ -118,11 +120,7 @@ export class Turn {
         } else {
             let next_player_i = this.player_i + 1;
             if (next_player_i === this.game.players.length) next_player_i = 0;
-            let new_stats = {};
-            Game.statuses.forEach(a => {
-                new_stats[a] = this.game[a];
-            });
-            return new Turn(this.game, next_player_i, new_stats);
+            return new Turn(this.game, next_player_i);
 
         }
     }

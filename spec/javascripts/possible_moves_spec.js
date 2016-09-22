@@ -31,9 +31,10 @@ describe('possible moves', () => {
     it('cannot lay ace as last', () => {
         let game = HelperBuilder.anonymousGameAt(({
             pile: [new Card(cards.BELLS | cards.NINE)],
-            player1: [new Card(cards.BELLS | cards.ACE)]
+            player1: [new Card(cards.BELLS | cards.ACE)],
+            stats: {continuance: true}
         }));
-        let turn = new Turn(game, 0, HelperBuilder.buildStats({continuance: true}));
+        let turn = new Turn(game, 0);
         expect(turn.possibleActions()).toEqual(['stay']);
     });
 

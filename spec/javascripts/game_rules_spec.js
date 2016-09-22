@@ -7,7 +7,6 @@ import {HelperBuilder} from './support/helper_builder';
 describe('game rules', () => {
 
     var game_at = HelperBuilder.anonymousGameAt;
-    var stats_with = HelperBuilder.buildStats;
 
     beforeEach(function() {
         jasmine.addMatchers({
@@ -83,10 +82,11 @@ describe('game rules', () => {
         it('nine on ace', () => {
             let game = game_at({
                 pile: [new Card(cards.HEARTS | cards.ACE)],
-                player1: [new Card(cards.HEARTS | cards.NINE)]
+                player1: [new Card(cards.HEARTS | cards.NINE)],
+                stats: {continuance: true}
             });
 
-            let turn = new Turn(game, 0, stats_with({continuance: true}));
+            let turn = new Turn(game, 0);
             let move = turn.lay(0);
             expect(move).toBeInvalidMove('ace');
         });
@@ -105,19 +105,21 @@ describe('game rules', () => {
         it('ace on ace', () => {
             let game = game_at({
                 pile: [new Card(cards.HEARTS | cards.ACE)],
-                player1: [new Card(cards.ACORNS | cards.ACE), new Card(0)]
+                player1: [new Card(cards.ACORNS | cards.ACE), new Card(0)],
+                stats: {continuance: true}
             });
 
-            let turn = new Turn(game, 0, stats_with({continuance: true}));
+            let turn = new Turn(game, 0);
             let move = turn.lay(0);
             expect(move).toBeValidMove();
         });
 
         it('cannot draw on ace', () => {
             let game = game_at({
-                pile: [new Card(cards.HEARTS | cards.ACE)]
+                pile: [new Card(cards.HEARTS | cards.ACE)],
+                stats: {continuance: true}
             });
-            let turn = new Turn(game, 0, stats_with({continuance: true}));
+            let turn = new Turn(game, 0);
             let move = turn.draw();
             expect(move).toBeInvalidMove('ace');
         });
@@ -143,7 +145,8 @@ describe('game rules', () => {
             let move = turn.doNothing();
             expect(move).toBeInvalidMove('nothing');
 
-            turn = new Turn(game, 0, stats_with({continuance: true}));
+            game.continuance = true;
+            turn = new Turn(game, 0);
             move = turn.doNothing();
             expect(move).toBeValidMove();
             move.apply(game);
@@ -201,9 +204,10 @@ describe('game rules', () => {
         it ('cannot lay while attacked', () => {
             let game = game_at({
                 pile: [new Card(cards.HEARTS | cards.SEVEN)],
-                player1: [new Card(cards.HEARTS | cards.NINE)]
+                player1: [new Card(cards.HEARTS | cards.NINE)],
+                stats: {continuance: true, attack: 2}
             });
-            let turn = new Turn(game, 0, stats_with({continuance: true, attack: 2}));
+            let turn = new Turn(game, 0);
             let move = turn.lay(0);
             expect(move).toBeInvalidMove('attack');
         });
@@ -214,7 +218,7 @@ describe('game rules', () => {
                 pile: [new Card(0), new Card(cards.HEARTS | cards.SEVEN)],
                 stats: {continuance: true, attack: 2}
             });
-            let turn = new Turn(game, 0, stats_with({continuance: true, attack: 2}));
+            let turn = new Turn(game, 0);
             let move = turn.draw();
             expect(move).toBeValidMove();
             move.apply(game);
@@ -227,9 +231,10 @@ describe('game rules', () => {
 
         it('draw while attacked - not enough', () => {
             let game = game_at({
-                pile: [new Card(cards.HEARTS | cards.SEVEN)]
+                pile: [new Card(cards.HEARTS | cards.SEVEN)],
+                stats: {continuance: true, attack: 2}
             });
-            let turn = new Turn(game, 0, stats_with({continuance: true, attack: 2}));
+            let turn = new Turn(game, 0);
             let move = turn.draw();
             expect(move).toBeInvalidMove('not_enough_cards');
         });
@@ -252,7 +257,7 @@ describe('game rules', () => {
                 player1: [new Card(cards.HEARTS | cards.KING)],
                 stats: {continuance: true, attack: 2}
             });
-            let turn = new Turn(game, 0, stats_with({continuance: true, attack: 2}));
+            let turn = new Turn(game, 0);
             let move = turn.lay(0);
             expect(move).toBeValidMove();
             move.apply(game);
@@ -265,7 +270,7 @@ describe('game rules', () => {
                 player1: [new Card(cards.LEAVES | cards.KING)],
                 stats: {continuance: true, attack: 2}
             });
-            let turn = new Turn(game, 0, stats_with({continuance: true, attack: 2}));
+            let turn = new Turn(game, 0);
             let move = turn.lay(0);
             expect(move).toBeValidMove();
             move.apply(game);
@@ -294,7 +299,7 @@ describe('game rules', () => {
                 player1: [new Card(cards.HEARTS | cards.TEN)],
                 stats: {continuance: true, attack: 2}
             });
-            let turn = new Turn(game, 0, stats_with({attack: 2}));
+            let turn = new Turn(game, 0);
             let move = turn.lay(0);
             expect(move).toBeValidMove();
             move.apply(game);
@@ -307,7 +312,7 @@ describe('game rules', () => {
                 player1: [new Card(cards.HEARTS | cards.SEVEN)],
                 stats: {continuance: true}
             });
-            let turn = new Turn(game, 0, stats_with({continuance: true}));
+            let turn = new Turn(game, 0);
             let move = turn.lay(0);
             expect(move).toBeInvalidMove('attack_on_ten');
         });
@@ -424,9 +429,10 @@ describe('game rules', () => {
         it('multiple eights - not enough cards', () => {
             let game = game_at({
                 pile: [new Card(0), new Card(cards.HEARTS | cards.NINE)],
-                player1: [new Card(cards.HEARTS | cards.EIGHT)]
+                player1: [new Card(cards.HEARTS | cards.EIGHT)],
+                stats: {continuance: true, eights: 3}
             });
-            let turn = new Turn(game, 0, stats_with({continuance: true, eights: 3}));
+            let turn = new Turn(game, 0);
             let move = turn.draw();
             expect(move).toBeInvalidMove('not_enough_cards');
         });
@@ -440,10 +446,11 @@ describe('game rules', () => {
         it('jack on ace', () => {
             let game = game_at({
                 pile: [new Card(cards.HEARTS | cards.ACE)],
-                player1: [new Card(cards.ACORNS | cards.JACK)]
+                player1: [new Card(cards.ACORNS | cards.JACK)],
+                stats: {continuance: true}
             });
 
-            let turn = new Turn(game, 0, stats_with({continuance: true}));
+            let turn = new Turn(game, 0);
             let move = turn.lay(0);
             expect(move).toBeInvalidMove('ace');
         });
@@ -452,10 +459,11 @@ describe('game rules', () => {
         it('seven on dragon', () => {
             let game = game_at({
                 pile: [new Card(cards.DRAGON)],
-                player1: [new Card(cards.HEARTS | cards.SEVEN)]
+                player1: [new Card(cards.HEARTS | cards.SEVEN)],
+                stats: {continuance: true, attack: 5}
             });
 
-            let turn = new Turn(game, 0, stats_with({continuance: true, attack: 5}));
+            let turn = new Turn(game, 0);
             let move = turn.lay(0);
             expect(move).toBeValidMove();
         });
