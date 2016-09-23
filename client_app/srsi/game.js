@@ -2,21 +2,44 @@ import {cards, Card} from './deck';
 
 export class Game {
 
-    constructor (deck, players) {
+    constructor (players, deck, options) {
+        if (deck === undefined) deck = cards.shuffleNewDeck();
         this.deck = deck;
+        this.pile = [];
         this.players = players;
-        this.players.forEach( p => p.cards = deck.splice(0, 6) );
-        this.pile = this.deck.splice(0, 1);
+        this.players.forEach( p => p.cards = [] );
         this.clearStats();
+
+        if (!options) options ={};
+
+        this.events = {};
+        let events = options['events'];
+        if (typeof events === 'object') {
+            for (let event_key of Object.keys(events)) this.attachEvent(event_key, events[event_key]);
+        }
+
+        this.translations = options['translations'];
+    }
+
+    dealCards () {
+        this.players.forEach( p => p.cards = this.deck.splice(0, 6) );
+        this.pile = this.deck.splice(0, 1);
     }
 
     move (move) {
-        move.apply(this);
+        move.applyTo(this);
+        this.triggerEvent('move', move);
+    }
+
+    createTurn (player_i) {
+        if (player_i === undefined) player_i = 0;
+        return new Turn(this, player_i);
     }
 
     endTurn (player_i) {
         let next_player_i = player_i + 1;
         if (next_player_i === this.players.length) next_player_i = 0;
+        this.triggerEvent('beginTurn', next_player_i);
     }
 
     clearStats () {
@@ -24,6 +47,18 @@ export class Game {
         this.attack = 0;
         this.eights = 0;
         this.suit = null;
+    }
+
+    attachEvent (key, fn) {
+        if (Game.knownEvents.ondexOf(key) === -1) throw 'bad argument: event name is unknown';
+        if (typeof  fn !== 'function') throw 'bad argument: is not function';
+        this.events[key] = fn;
+    }
+
+    triggerEvent () {
+        let args = Array.prototype.slice.call(arguments);
+        let callback = this.events[args.shift()];
+        if (callback) callback.apply(this, args);
     }
 
     t (key) {
@@ -35,6 +70,7 @@ export class Game {
 }
 
 Game.statuses = ['continuance', 'attack', 'suit', 'eights'];
+Game.knownEvents = [''];
 
 var _translation_finder = (data, keys, i) => {
     if (typeof data !== 'object') return undefined;
@@ -57,8 +93,6 @@ export class Turn {
         this.player_i = player_i;
         this.moves = [];
         this.setFromGame(game);
-
-        this.game = game;
     }
 
     setFromGame (game) {
@@ -69,7 +103,7 @@ export class Turn {
     }
 
     pileCard () {
-        let real = this.game.pile[this.game.pile.length - 1];
+        let real = this.pile[this.pile.length - 1];
         let suit_change = this.status('suit');
         if (suit_change !== null) {
             return new Card(suit_change | real.rank);
@@ -79,19 +113,15 @@ export class Turn {
     }
 
     cards_left () {
-        return this.game.deck.length + this.game.pile.length - 1;
+        return this.deck.length + this.pile.length - 1;
     }
 
     playerCards () {
-        return this.game.players[this.player_i].cards;
+        return this.players[this.player_i];
     }
 
     status (key) {
         return this[key];
-    }
-
-    setStatus (key, value) {
-        this[key] = value;
     }
 
     lastMove () {
@@ -123,10 +153,10 @@ export class Turn {
 
     finishMove (move, game) {
         this.moves.push(move);
-        this.game.move(move);
+        game.move(move);
 
         if (move.terminating()) {
-            this.game.endTurn(this.player_i);
+            game.endTurn(this.player_i);
             return true;
 
         } else {
@@ -144,25 +174,15 @@ export class Turn {
             return [];
         }
 
+        let passive = 'draw';
+        if (this.status('continuance')) {
+            if (this.pileCard().rank === cards.ACE) passive = 'stay';
+            else if (this.status('attack') > 0) passive = 'devour';
+        }
         let player_cards = this.playerCards();
         let last_is_ace = player_cards.length === 1 && player_cards[0].rank === cards.ACE;
 
-        if (this.status('continuance')) {
-
-            if (last_is_ace) return ['stay'];
-            else {
-
-                if (this.pileCard().rank === cards.ACE) return ['stay', 'lay'];
-                if (this.status('attack') > 0) return ['devour', 'lay'];
-            }
-
-        } else {
-
-            if (last_is_ace) return ['draw'];
-
-        }
-
-        return ['draw', 'lay'];
+        return last_is_ace ? [passive] : [passive, 'lay'];
     }
 
     static clearStats () {
@@ -188,6 +208,9 @@ class Move {
         return true;
     }
 
+    serialize () {
+        return {move: 'nope'};
+    }
 }
 
 class DrawMove extends Move {
@@ -214,7 +237,7 @@ class DrawMove extends Move {
         }
     }
 
-    apply (game) {
+    applyTo (game) {
         let left_in_pile = game.pile.length - 1;
         if (this.to_take >= game.deck.length && left_in_pile > 0) {
             game.deck = game.deck.concat(game.pile.splice(0, left_in_pile));
@@ -273,6 +296,11 @@ class LayMove extends Move {
 
             if (card.rank === cards.EIGHT) {
                 this.eights = true;
+
+            } else if (context.eights > 0) {
+                this.error = 'eights';
+                this.valid = false;
+
             }
 
             return;
@@ -286,7 +314,7 @@ class LayMove extends Move {
         return this.queer !== true && this.eights !== true;
     }
 
-    apply (game) {
+    applyTo (game) {
         let card = game.players[this.player_i].cards.splice(this.card_i, 1)[0];
         game.pile.push(card);
 
@@ -327,7 +355,7 @@ class QueerMove extends Move {
         this.suit = suit;
     }
 
-    apply (game) {
+    applyTo (game) {
         game.clearStats();
         game.suit = this.suit;
         game.continuance = true;
@@ -348,7 +376,7 @@ class NoMove extends Move {
         this.valid = false;
     }
 
-    apply (game) {
+    applyTo (game) {
         game.clearStats();
     }
 

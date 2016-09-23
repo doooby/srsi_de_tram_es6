@@ -8,40 +8,60 @@ Handlebars.registerHelper('debug', function(value) {
 
 var HB_APP = {
 
-    printTurn: function (turn) {
+    playGame: function (game) {
+        HB_APP.game = game;
+        game.dealCards();
+
+        game.events = {
+
+            move: function (move) {
+                if (!move.terminating()) HB_APP.printTurn(this, HB_APP.turn);
+            },
+
+            beginTurn: function (player_i) {
+                HB_APP.printTurn(this, this.createTurn(player_i));
+            }
+        };
+
+        HB_APP.printTurn(game, game.createTurn());
+    },
+
+    printTurn: function (game, turn) {
+        this.turn = turn;
+
         let $container = $('#container');
         $container.html('');
 
         $container.append(HandlebarsTemplates['section']({
             section: 'deck',
-            title: turn.game.t('titles.deck'),
-            cards: HB_APP.generateCardsHelper(turn, turn.game.deck, {visible: true})
+            title: game.t('titles.deck'),
+            cards: HB_APP.generateCardsHelper(turn, turn.deck, {visible: true})
         }));
 
         $container.append(HandlebarsTemplates['section']({
             section: 'pile',
-            title: turn.game.t('titles.pile'),
-            cards: HB_APP.generateCardsHelper(turn, turn.game.pile, {visible: true})
+            title: game.t('titles.pile'),
+            cards: HB_APP.generateCardsHelper(turn, turn.pile, {visible: true})
         }), true);
 
-        turn.game.players.forEach((player, player_i) => {
+        game.players.forEach((player, player_i) => {
             let on_turn = turn.player_i === player_i;
             let actions = turn.possibleActions();
 
             let $html = $(HandlebarsTemplates['section']({
                 section: 'player',
-                title: turn.game.t('titles.player') + ' - '+ player.name,
-                cards: HB_APP.generateCardsHelper(turn, player.cards, {visible: true, global_can_lay: on_turn}),
-                actions: (on_turn ? HB_APP.generateActionsHelper(turn, actions) : null)
+                title: game.t('titles.player') + ' - '+ player.name,
+                cards: HB_APP.generateCardsHelper(turn, turn.players[player_i], {visible: true, global_can_lay: on_turn}),
+                actions: (on_turn ? HB_APP.generateActionsHelper(game, turn, actions) : null)
             }));
 
-            if (on_turn) $html.on('click', '[data-action]', HB_APP.playerMove.bind(HB_APP, turn));
+            if (on_turn) $html.on('click', '[data-action]', HB_APP.playerMove.bind(HB_APP, game, turn));
 
             $container.append($html);
         });
 
         $container.append('<div id="printout"></div>');
-        this.turn = turn;
+
     },
 
     generateCardsHelper: function (turn, cards, context) {
@@ -56,11 +76,11 @@ var HB_APP = {
         });
     },
 
-    generateActionsHelper: function (turn, actions) {
+    generateActionsHelper: function (game, turn, actions) {
         let buttons = [];
 
         actions.forEach(action => {
-            let def = {action: action, text: turn.game.t('actions.'+action)};
+            let def = {action: action, text: game.t('actions.'+action)};
 
             switch (action) {
                 case 'draw':
@@ -69,7 +89,7 @@ var HB_APP = {
                     break;
 
                 case 'devour':
-                    def.text += ' ' + turn.stats.attack;
+                    def.text += ' ' + turn.attack;
                     buttons.push(def);
                     break;
 
@@ -89,7 +109,7 @@ var HB_APP = {
         $('#printout').html(HandlebarsTemplates['alert']({text: text, type: 'alert'}));
     },
 
-    playerMove: function (turn, e) {
+    playerMove: function (game, turn, e) {
         this.clearAlert();
         let $el = $(e.target);
         let move;
@@ -116,11 +136,10 @@ var HB_APP = {
         }
 
         if (move.valid) {
-            this.printTurn(turn.finishMove(move, turn.game));
-
+            turn.finishMove(move, game);
 
         } else {
-            this.printAlert(turn.game.t('bad_move.' + move.error));
+            this.printAlert(game.t('bad_move.' + move.error));
 
         }
     }

@@ -436,6 +436,20 @@ describe('game rules', () => {
             expect(move).toBeInvalidMove('not_enough_cards');
         });
 
+        it('lay multiple eights - only eights', () => {
+            let game = game_at({
+                pile: [new Card(0), new Card(0), new Card(cards.HEARTS | cards.NINE)],
+                player1: [new Card(cards.HEARTS | cards.EIGHT), new Card(cards.HEARTS | cards.TEN)]
+            });
+            let turn = new Turn(game, 0);
+            let move = turn.lay(0);
+            expect(turn.finishMove(move, game)).toBe(false);
+            expect(turn.eights).toBe(1);
+
+            move = turn.lay(0);
+            expect(move).toBeInvalidMove('eights');
+        });
+
     });
 
     describe('corrections', () => {

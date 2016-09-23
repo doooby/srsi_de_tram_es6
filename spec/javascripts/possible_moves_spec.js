@@ -30,8 +30,8 @@ describe('possible moves', () => {
 
     it('cannot lay ace as last', () => {
         let game = HelperBuilder.anonymousGameAt(({
-            pile: [new Card(cards.BELLS | cards.NINE)],
-            player1: [new Card(cards.BELLS | cards.ACE)],
+            pile: [new Card(cards.BELLS | cards.ACE)],
+            player1: [new Card(cards.ACORNS | cards.ACE)],
             stats: {continuance: true}
         }));
         let turn = new Turn(game, 0);
@@ -65,6 +65,16 @@ describe('possible moves', () => {
         let turn = new Turn(game, 0);
         turn.finishMove(turn.lay(0), game);
         expect(turn.possibleActions()).toEqual(['draw', 'lay']);
+    });
+
+    it('attacked, having only ace', () => {
+        let game = HelperBuilder.anonymousGameAt(({
+            pile: [new Card(cards.DRAGON)],
+            player1: [new Card(cards.HEARTS | cards.ACE)],
+            stats: {continuance: true, attack: 5}
+        }));
+        let turn = new Turn(game, 0);
+        expect(turn.possibleActions()).toEqual(['devour']);
     });
 
 });

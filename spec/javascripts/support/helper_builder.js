@@ -4,7 +4,8 @@ import {Game, Player, Turn} from '../../../client_app/srsi/game';
 var HelperBuilder = {
 
     anonymousGameAt: function (options) {
-        let game = new Game([], [new Player('player1'), new Player('player2')]);
+        let game = new Game([new Player('player1'), new Player('player2')], []);
+        game.dealCards();
 
         if (options === undefined) options = {};
         if (options['deck']) game.deck = options['deck'];
