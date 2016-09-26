@@ -2,7 +2,7 @@
     <span class="title">{{title}}</span>
 
     {{#if actions}}{{#each actions}}
-        <button type="button" class="button secondary" data-action="{{action}}">{{text}}</button>
+        <button type="button" class="button secondary" data-action="{{action}}" data-args="{{args}}">{{text}}</button>
     {{/each}}{{/if}}
 
     <br/>
@@ -11,5 +11,7 @@
         <span class="card {{suit}} {{#if @first}}first{{/if}} {{#if @last}}last{{/if}} {{#if hidden}}hidden{{/if}}"
               data-card="{{index}}" {{#if can_lay}}data-action="lay"{{/if}}>{{text}}</span>
     {{/each}}
+
+    {{#if queer}}{{queer}}{{/if}}
 
 </div>

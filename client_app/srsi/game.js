@@ -26,22 +26,6 @@ export class Game {
         this.pile = this.deck.splice(0, 1);
     }
 
-    move (move) {
-        move.applyTo(this);
-        this.triggerEvent('move', move);
-    }
-
-    createTurn (player_i) {
-        if (player_i === undefined) player_i = 0;
-        return new Turn(this, player_i);
-    }
-
-    endTurn (player_i) {
-        let next_player_i = player_i + 1;
-        if (next_player_i === this.players.length) next_player_i = 0;
-        this.triggerEvent('beginTurn', next_player_i);
-    }
-
     clearStats () {
         this.continuance = false;
         this.attack = 0;
@@ -50,7 +34,7 @@ export class Game {
     }
 
     attachEvent (key, fn) {
-        if (Game.knownEvents.ondexOf(key) === -1) throw 'bad argument: event name is unknown';
+        if (Game.knownEvents.indexOf(key) === -1) throw 'bad argument: event name is unknown';
         if (typeof  fn !== 'function') throw 'bad argument: is not function';
         this.events[key] = fn;
     }
@@ -70,7 +54,7 @@ export class Game {
 }
 
 Game.statuses = ['continuance', 'attack', 'suit', 'eights'];
-Game.knownEvents = [''];
+Game.knownEvents = ['move', 'beginTurn'];
 
 var _translation_finder = (data, keys, i) => {
     if (typeof data !== 'object') return undefined;
@@ -153,17 +137,18 @@ export class Turn {
 
     finishMove (move, game) {
         this.moves.push(move);
-        game.move(move);
+
+        move.applyTo(game);
+        if (!move.terminating()) this.setFromGame(game);
+        game.triggerEvent('move', move);
 
         if (move.terminating()) {
-            game.endTurn(this.player_i);
-            return true;
-
-        } else {
-            this.setFromGame(game);
-            return false;
-
+            let next_player_i = this.player_i + 1;
+            if (next_player_i === game.players.length) next_player_i = 0;
+            game.triggerEvent('beginTurn', next_player_i);
         }
+
+        return move.terminating();
     }
 
     possibleActions () {

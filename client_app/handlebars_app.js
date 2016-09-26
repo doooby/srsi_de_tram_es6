@@ -1,6 +1,9 @@
 //= require handlebars.runtime
 //= require_directory ./templates
 
+import {cards} from 'srsi/deck';
+import {Turn} from 'srsi/game';
+
 Handlebars.registerHelper('debug', function(value) {
     console.log('debug --- >', value);
 });
@@ -10,20 +13,18 @@ var HB_APP = {
 
     playGame: function (game) {
         HB_APP.game = game;
+
         game.dealCards();
 
-        game.events = {
+        game.attachEvent('move', function (move) {
+            if (!move.terminating()) HB_APP.printTurn(this, HB_APP.turn);
+        });
 
-            move: function (move) {
-                if (!move.terminating()) HB_APP.printTurn(this, HB_APP.turn);
-            },
+        game.attachEvent('beginTurn', function (player_i) {
+            HB_APP.printTurn(this, new Turn(this, player_i));
+        });
 
-            beginTurn: function (player_i) {
-                HB_APP.printTurn(this, this.createTurn(player_i));
-            }
-        };
-
-        HB_APP.printTurn(game, game.createTurn());
+        HB_APP.printTurn(game, new Turn(game, 0));
     },
 
     printTurn: function (game, turn) {
@@ -41,8 +42,9 @@ var HB_APP = {
         $container.append(HandlebarsTemplates['section']({
             section: 'pile',
             title: game.t('titles.pile'),
-            cards: HB_APP.generateCardsHelper(turn, turn.pile, {visible: true})
-        }), true);
+            cards: HB_APP.generateCardsHelper(turn, turn.pile, {visible: true}),
+            queer: (turn.suit ? cards.transcribe(turn.suit) : null)
+        }));
 
         game.players.forEach((player, player_i) => {
             let on_turn = turn.player_i === player_i;
@@ -64,13 +66,13 @@ var HB_APP = {
 
     },
 
-    generateCardsHelper: function (turn, cards, context) {
+    generateCardsHelper: function (turn, _cards, context) {
         let visible = !!context.visible;
         let global_can_lay = !!context.global_can_lay;
-        return cards.map((c, i) => {
+        return _cards.map((c, i) => {
             if (visible) {
                 let can_lay = global_can_lay;
-                return {index: i, text: c.text, can_lay: can_lay, suit: c.suitText()};
+                return {index: i, text: c.text, can_lay: can_lay, suit: cards.suitName(c.suit)};
             }
             else return {index: i, hidden: true};
         });
@@ -80,20 +82,21 @@ var HB_APP = {
         let buttons = [];
 
         actions.forEach(action => {
-            let def = {action: action, text: game.t('actions.'+action)};
 
             switch (action) {
                 case 'draw':
                 case 'stay':
-                    buttons.push(def);
+                    buttons.push({action: action, text: game.t('actions.'+action)});
                     break;
 
                 case 'devour':
-                    def.text += ' ' + turn.attack;
-                    buttons.push(def);
+                    buttons.push({action: action, text: game.t('actions.'+action) + ' ' + turn.attack});
                     break;
 
                 case 'queer':
+                    cards.SUITS.forEach((suit) => {
+                        buttons.push({action: action, args: suit, text: cards.transcribe(suit)});
+                    });
                     break;
             }
         });
@@ -130,7 +133,8 @@ var HB_APP = {
                 break;
 
             case 'queer':
-                //    move = turn.selectQueenSuit();
+                let suit = $el.data('args');
+                move = turn.selectQueenSuit(suit);
                 break;
 
         }

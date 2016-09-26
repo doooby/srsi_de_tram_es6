@@ -3,7 +3,7 @@ export class Card {
     constructor (id) {
         this.suit = id & 0xf0;
         this.rank = id & 0x0f;
-        this.text = transcriptions[this.suit] + transcriptions[this.rank];
+        this.text = cards.transcribe(this.suit) + cards.transcribe(this.rank);
     }
 
     id () { return this.suit | this.rank; }
@@ -15,17 +15,11 @@ export class Card {
     }
 
     suitText () {
-        switch (this.suit) {
-            case cards.HEARTS: return 'hearts';
-            case cards.BELLS: return 'bells';
-            case cards.ACORNS: return 'acorn';
-            case cards.LEAVES: return 'leaves';
-        }
+        return cards.suitName(this.suit);
     }
 }
 
-let transcriptions = {};
-let cards = [];
+var transcriptions = {}, cards = [], suit_names = {};
 
 // suits
 cards.HEARTS = 0x10;  // 16 ♥
@@ -60,16 +54,10 @@ transcriptions[cards.KING] = "K";
 transcriptions[cards.ACE] = "A";
 transcriptions[cards.DRAGON] = "D";
 
-// the whole cards
-cards.SUITS = Object.freeze([cards.HEARTS, cards.BELLS, cards.ACORNS, cards.LEAVES]);
-cards.RANKS = Object.freeze([cards.SEVEN, cards.EIGHT, cards.NINE, cards.TEN, cards.JACK,
-    cards.QUEEN, cards.KING, cards.ACE]);
-cards.push(new Card(cards.DRAGON));
-cards.SUITS.forEach(function (suit) {
-    cards.RANKS.forEach(function (rank) {
-        cards.push(new Card(suit | rank));
-    });
-});
+suit_names[cards.HEARTS] = 'hearts';
+suit_names[cards.BELLS] = 'bells';
+suit_names[cards.ACORNS] = 'acorn';
+suit_names[cards.LEAVES] = 'leaves';
 
 cards.shuffleNewDeck = function () {
     let i = 0, j = 0, temp = null, array = cards.slice();
@@ -85,6 +73,25 @@ cards.shuffleNewDeck = function () {
 cards.create = function (suit, rank) {
     return new Card(suit | rank);
 };
+
+cards.transcribe = function (value) {
+  return transcriptions[value];
+};
+
+cards.suitName = function (suit) {
+  return suit_names[suit];
+};
+
+// the whole cards
+cards.SUITS = Object.freeze([cards.HEARTS, cards.BELLS, cards.ACORNS, cards.LEAVES]);
+cards.RANKS = Object.freeze([cards.SEVEN, cards.EIGHT, cards.NINE, cards.TEN, cards.JACK,
+    cards.QUEEN, cards.KING, cards.ACE]);
+cards.push(new Card(cards.DRAGON));
+cards.SUITS.forEach(function (suit) {
+    cards.RANKS.forEach(function (rank) {
+        cards.push(new Card(suit | rank));
+    });
+});
 
 Object.freeze(cards);
 export {cards};
