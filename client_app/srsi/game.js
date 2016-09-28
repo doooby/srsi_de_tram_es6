@@ -71,23 +71,74 @@ export class Player {
 
 }
 
-export class Turn {
+export class GameState {
 
-    constructor (game, player_i) {
-        this.player_i = player_i;
-        this.moves = [];
-        this.setFromGame(game);
+    constructor (state) {
+        this.deck = Object.assign([], state.deck);
+        this.pile = Object.assign([], state.pile);
+        this.players = state.players.map(p => Object.assign([], p.cards));
+        this.on_move = state.on_move;Turn
+        this.continuance = state.continuance;
+        this.attack = state.attack;
+        this.eights = state.eights;
+        this.suit = state.suit;
     }
 
-    setFromGame (game) {
-        this.deck = Object.assign([], game.deck);
-        this.pile = Object.assign([], game.pile);
-        this.players = game.players.map(p => p.cards);
-        Game.statuses.forEach(s => this[s] = game[s]);
+    duplicate () {
+        return new GameState(this);
+    }
+
+}
+
+GameState.empty = new GameState({
+    deck: [],
+    pile: [],
+    players: [],
+    on_move: -1,
+    continuance: false,
+    attack: 0,
+    eights: 0,
+    suit: null
+});
+
+GameState.at = function (options) {
+    let state = GameState.empty.duplicate();
+    if (typeof options !== 'object') return state;
+
+    if (options['deck']) state.deck = options['deck'];
+    if (options['pile']) state.pile = options['pile'];
+
+    if (options['players']) {
+        let players = options['players'], last = -1;
+        for (let i=3; i>-1; i-=1) {
+            if (players[i]) {
+                last = last > i ? last : i;
+                state.players[i] = players[i];
+            } else if (last > i) {
+                state.players[i] = [];
+            }
+        }
+    }
+    let on_move = options['on_move'];
+    if (on_move === undefined && state.players.length > 0) on_move = 0;
+    if (on_move !== undefined) state.on_move = on_move;
+
+    ['continuance', 'attack', 'suit', 'eights'].forEach(a => {
+       if (options[a]) state[a] = options[a];
+    });
+
+    return state;
+};
+
+export class Turn {
+
+    constructor (state) {
+        this.state = state;
+        this.moves = [];
     }
 
     pileCard () {
-        let real = this.pile[this.pile.length - 1];
+        let real = this.state.pile[this.state.pile.length - 1];
         let suit_change = this.status('suit');
         if (suit_change !== null) {
             return new Card(suit_change | real.rank);
@@ -97,15 +148,15 @@ export class Turn {
     }
 
     cards_left () {
-        return this.deck.length + this.pile.length - 1;
+        return this.state.deck.length + this.state.pile.length - 1;
     }
 
     playerCards () {
-        return this.players[this.player_i];
+        return this.state.players[this.state.on_move];
     }
 
     status (key) {
-        return this[key];
+        return this.state[key];
     }
 
     lastMove () {
@@ -113,42 +164,44 @@ export class Turn {
     }
 
     lay (card_i) {
-        let move = new LayMove(this.player_i, card_i);
+        let move = new LayMove(this.state.on_move, card_i);
         move.evaluate(this);
         return move;
     }
 
     draw () {
-        let move = new DrawMove(this.player_i);
+        let move = new DrawMove(this.state.on_move);
         move.evaluate(this);
         return move;
     }
 
     doNothing () {
-        let move = new NoMove(this.player_i);
+        let move = new NoMove(this.state.on_move);
         move.evaluate(this);
         return move;
     }
 
     selectQueenSuit (suit) {
         if (suit === undefined) suit = null;
-        return new QueerMove(this.player_i, suit);
+        return new QueerMove(this.state.on_move, suit);
     }
 
     finishMove (move, game) {
         this.moves.push(move);
 
-        move.applyTo(game);
-        if (!move.terminating()) this.setFromGame(game);
+        // modify others
         game.triggerEvent('move', move);
+
+        // modify self
+        let new_state = move.applyTo(game.state);
+        if (!move.terminating()) this.state = new_state;
+
 
         if (move.terminating()) {
             let next_player_i = this.player_i + 1;
             if (next_player_i === game.players.length) next_player_i = 0;
             game.triggerEvent('beginTurn', next_player_i);
         }
-
-        return move.terminating();
     }
 
     possibleActions () {
