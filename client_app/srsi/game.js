@@ -391,10 +391,9 @@ export class QueerMove extends Move {
         this.suit = suit;
     }
 
-    applyTo (game) {
-        game.clearStats();
-        game.suit = this.suit;
-        game.continuance = true;
+    applyTo (state) {
+        if (this.suit) state.suit = this.suit;
+        state.continuance = true;
     }
 
 }

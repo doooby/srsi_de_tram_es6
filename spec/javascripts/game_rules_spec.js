@@ -230,7 +230,7 @@ describe('game rules', () => {
             /*
              turn.finishMove(move, game);
              expect(game.attack).toBe(0);
-             expect(game.continuance).toBe(false);
+             expect(game.continuance).toBe(falseattacks);
              expect(game.deck.length).toBe(0);
              expect(game.pile.length).toBe(1);
              expect(game.players[move.player_i].cards.length).toBe(2);
@@ -247,7 +247,7 @@ describe('game rules', () => {
             expect(move).toBeInvalidMove('not_enough_cards');
         });
 
-        it('seven attacks with 2', () => {
+        it('attack with seven', () => {
             let turn = new Turn(GameState.at({
                 pile: [new Card(cards.HEARTS | cards.NINE)],
                 players: [
@@ -256,11 +256,6 @@ describe('game rules', () => {
             }));
             let move = turn.lay(0);
             expect(move).toBeValidMove();
-
-            /*
-             turn.finishMove(move, game);
-             expect(game.attack).toBe(2);
-             */
         });
 
         it('king only returns', () => {
@@ -276,7 +271,7 @@ describe('game rules', () => {
             expect(move).toBeValidMove();
         });
 
-        it('king of leaves attacks with 4', () => {
+        it('attack with king of leaves', () => {
             let turn = new Turn(GameState.at({
                 pile: [new Card(cards.LEAVES | cards.SEVEN)],
                 players: [
@@ -287,14 +282,9 @@ describe('game rules', () => {
             }));
             let move = turn.lay(0);
             expect(move).toBeValidMove();
-
-            /*
-             turn.finishMove(move, game);
-             expect(game.attack).toBe(6);
-             */
         });
 
-        it('dragon attacks with 5', () => {
+        it('dragon', () => {
             let turn = new Turn(GameState.at({
                 pile: [new Card(cards.HEARTS | cards.NINE)],
                 players: [
@@ -303,18 +293,26 @@ describe('game rules', () => {
             }));
             let move = turn.lay(0);
             expect(move).toBeValidMove();
+        });
 
-            /*
-             turn.finishMove(move, game);
-             expect(game.attack).toBe(5);
-             */
+        it('seven on dragon', () => {
+            let turn = new Turn(GameState.at({
+                pile: [new Card(cards.DRAGON)],
+                players: [
+                    [new Card(cards.HEARTS | cards.SEVEN)]
+                ],
+                continuance: true,
+                attack: 5
+            }));
+            let move = turn.lay(0);
+            expect(move).toBeValidMove();
         });
 
     });
 
     describe('defensive cards', () => {
 
-        it('ten clears attack', () => {
+        it('ten on attack', () => {
             let turn = new Turn(GameState.at({
                 pile: [new Card(cards.HEARTS | cards.SEVEN)],
                 players: [
@@ -325,11 +323,6 @@ describe('game rules', () => {
             }));
             let move = turn.lay(0);
             expect(move).toBeValidMove();
-
-            /*
-             turn.finishMove(move, game);
-             expect(game.attack).toBe(0);
-             */
         });
 
         it('no attack on ten', () => {
@@ -370,7 +363,7 @@ describe('game rules', () => {
             expect(move).toBeValidMove();
         });
 
-        it('queen - no change', () => {
+        it('lay queen', () => {
             let turn = new Turn(GameState.at({
                 pile: [new Card(cards.HEARTS | cards.NINE)],
                 players: [
@@ -379,43 +372,22 @@ describe('game rules', () => {
             }));
             let move = turn.lay(0);
             expect(move).toBeValidMove(false);
+        });
 
-            /*
-             expect(turn.finishMove(move, game)).toBe(false);
-             expect(turn.lastMove()).toBe(move);
-             expect(move.queer).toBe(true);
-
-             move = turn.selectQueenSuit();
-             expect(move).toBeValidMove();
-             turn.finishMove(move, game);
-             expect(game.suit).toBe(null);
-             expect(game.continuance).toBe(true);
-             expect(turn.pileCard()).toBe(game.pile[1]);
-             */
+        it('queen', () => {
+            let turn = new Turn(GameState.at({
+                pile: [new Card(cards.HEARTS | cards.QUEEN)]
+            }));
+            let move = turn.selectQueenSuit();
+            expect(move).toBeValidMove();
         });
 
         it('queen with change', () => {
             let turn = new Turn(GameState.at({
-                pile: [new Card(cards.HEARTS | cards.NINE)],
-                players: [
-                    [new Card(cards.HEARTS | cards.QUEEN)]
-                ]
+                pile: [new Card(cards.HEARTS | cards.QUEEN)]
             }));
-            let move = turn.lay(0);
-            expect(move).toBeValidMove(false);
-
-            /*
-             expect(turn.finishMove(move, game)).toBe(false);
-             expect(turn.lastMove()).toBe(move);
-             expect(move.queer).toBe(true);
-
-             let new_suit = cards.BELLS;
-             move = turn.selectQueenSuit(new_suit);
-             expect(move).toBeValidMove();
-             expect(turn.finishMove(move, game)).toBe(true);
-             expect(game.suit).toBe(new_suit);
-             expect(game.continuance).toBe(true);
-             */
+            let move = turn.selectQueenSuit(cards.BELLS);
+            expect(move).toBeValidMove();
         });
 
     });
@@ -442,29 +414,6 @@ describe('game rules', () => {
             }));
             let move = turn.lay(0);
             expect(move).toBeValidMove(false);
-
-            /*
-             expect(turn.finishMove(move, game)).toBe(false);
-             expect(turn.lastMove()).toBe(move);
-             expect(move.eights).toBe(true);
-             expect(game.eights).toBe(1);
-             expect(game.players[move.player_i].cards.length).toBe(1);
-
-             move = turn.lay(0);
-             expect(move).toBeValidMove(false);
-             expect(turn.finishMove(move, game)).toBe(false);
-             expect(turn.lastMove()).toBe(move);
-             expect(move.eights).toBe(true);
-             expect(game.eights).toBe(2);
-             expect(game.players[move.player_i].cards.length).toBe(0);
-
-             move = turn.draw();
-             expect(move).toBeValidMove();
-             expect(turn.finishMove(move, game)).toBe(true);
-             expect(game.continuance).toBe(true);
-             expect(game.eights).toBe(0);
-             expect(game.players[move.player_i].cards.length).toBe(2);
-             */
         });
 
         it('multiple eights - not enough cards', () => {
@@ -489,48 +438,8 @@ describe('game rules', () => {
             }));
             let move = turn.lay(0);
             expect(move).toBeValidMove(false);
-
-            /*
-             expect(turn.finishMove(move, game)).toBe(false);
-             expect(turn.eights).toBe(1);
-
-             move = turn.lay(0);
-             expect(move).toBeInvalidMove('eights');
-             */
         });
 
     });
-
-    describe('corrections', () => {
-
-        // jack on ace
-        // the check whether is jack was at the beginning of move validation and therefore attack check was skipped
-        it('jack on ace', () => {
-            let turn = new Turn(GameState.at({
-                pile: [new Card(cards.HEARTS | cards.ACE)],
-                players: [
-                    [new Card(cards.ACORNS | cards.JACK)]
-                ],
-                continuance: true
-            }));
-            let move = turn.lay(0);
-            expect(move).toBeInvalidMove('ace');
-        });
-
-        // couldn't lay a seven on the dragon
-        it('seven on dragon', () => {
-            let turn = new Turn(GameState.at({
-                pile: [new Card(cards.DRAGON)],
-                players: [
-                    [new Card(cards.HEARTS | cards.SEVEN)]
-                ],
-                continuance: true,
-                attack: 5
-            }));
-            let move = turn.lay(0);
-            expect(move).toBeValidMove();
-        });
-
-    })
 
 });
