@@ -76,8 +76,8 @@ export class GameState {
     constructor (state) {
         this.deck = Object.assign([], state.deck);
         this.pile = Object.assign([], state.pile);
-        this.players = state.players.map(p => Object.assign([], p.cards));
-        this.on_move = state.on_move;Turn
+        this.players = state.players.map(p => Object.assign([], p));
+        this.on_move = state.on_move;
         this.continuance = state.continuance;
         this.attack = state.attack;
         this.eights = state.eights;
@@ -86,6 +86,12 @@ export class GameState {
 
     duplicate () {
         return new GameState(this);
+    }
+
+    toNextPlayer () {
+        let next = this.on_move + 1;
+        if (next >= this.players.length) next = 0;
+        this.on_move = next;
     }
 
 }
@@ -105,27 +111,13 @@ GameState.at = function (options) {
     let state = GameState.empty.duplicate();
     if (typeof options !== 'object') return state;
 
-    if (options['deck']) state.deck = options['deck'];
-    if (options['pile']) state.pile = options['pile'];
+    ['deck', 'pile', 'players', 'continuance', 'attack', 'suit', 'eights'].forEach(a => {
+       if (options[a]) state[a] = options[a];
+    });
 
-    if (options['players']) {
-        let players = options['players'], last = -1;
-        for (let i=3; i>-1; i-=1) {
-            if (players[i]) {
-                last = last > i ? last : i;
-                state.players[i] = players[i];
-            } else if (last > i) {
-                state.players[i] = [];
-            }
-        }
-    }
     let on_move = options['on_move'];
     if (on_move === undefined && state.players.length > 0) on_move = 0;
     if (on_move !== undefined) state.on_move = on_move;
-
-    ['continuance', 'attack', 'suit', 'eights'].forEach(a => {
-       if (options[a]) state[a] = options[a];
-    });
 
     return state;
 };
@@ -251,7 +243,7 @@ class Move {
     }
 }
 
-class DrawMove extends Move {
+export class DrawMove extends Move {
 
     evaluate (context) {
         let pile = context.pileCard();
@@ -290,7 +282,7 @@ class DrawMove extends Move {
 
 }
 
-class LayMove extends Move {
+export class LayMove extends Move {
 
     constructor (player_i, card_i) {
         super(player_i);
@@ -352,41 +344,47 @@ class LayMove extends Move {
         return this.queer !== true && this.eights !== true;
     }
 
-    applyTo (game) {
-        let card = game.players[this.player_i].cards.splice(this.card_i, 1)[0];
-        game.pile.push(card);
+    applyTo (state) {
+        let card = state.players[this.player_i].splice(this.card_i, 1)[0];
+        state.pile.push(card);
 
-        let attack = game.attack, eights = game.eights;
-        game.clearStats();
-        game.continuance = true;
+        let attack = state.attack, eights = state.eights;
+        state.continuance = true;
+        let end_of_move = true;
 
         switch (card.rank) {
 
             case cards.SEVEN:
-                game.attack = attack + 2;
+                state.attack = attack + 2;
                 break;
 
             case cards.EIGHT:
-                game.eights = eights + 1;
+                state.eights = eights + 1;
+                end_of_move = false;
                 break;
 
             case cards.TEN:
-                game.attack = 0;
+                state.attack = 0;
+                break;
+
+            case cards.QUEEN:
+                end_of_move = false;
                 break;
 
             case cards.KING:
-                game.attack = attack + (card.suit === cards.LEAVES ? 4 : 0);
+                state.attack = attack + (card.suit === cards.LEAVES ? 4 : 0);
                 break;
 
             case cards.DRAGON:
-                game.attack = attack + 5;
+                state.attack = attack + 5;
                 break;
         }
+        if (end_of_move) state.toNextPlayer();
     }
 
 }
 
-class QueerMove extends Move {
+export class QueerMove extends Move {
 
     constructor (player_i, suit) {
         super(player_i);
@@ -401,7 +399,7 @@ class QueerMove extends Move {
 
 }
 
-class NoMove extends Move {
+export class NoMove extends Move {
 
     evaluate (context) {
         let pile = context.pileCard();

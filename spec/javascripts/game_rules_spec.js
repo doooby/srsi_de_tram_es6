@@ -2,7 +2,6 @@ import {cards, Card} from '../../client_app/srsi/deck';
 import {Game, GameState, Player, Turn} from '../../client_app/srsi/game';
 
 
-
 describe('game rules', () => {
 
     beforeEach(function() {
@@ -275,11 +274,6 @@ describe('game rules', () => {
             }));
             let move = turn.lay(0);
             expect(move).toBeValidMove();
-
-            /*
-             turn.finishMove(move, game);
-             expect(game.attack).toBe(2);
-             */
         });
 
         it('king of leaves attacks with 4', () => {
