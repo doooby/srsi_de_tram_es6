@@ -96,7 +96,8 @@ export class GameState {
 
     pileCard () {
         let real = this.pile[this.pile.length - 1];
-        return this.queer === null ? real : new Card(this.suit | real.rank);
+        let queer_suit = (typeof this.queer === 'number') ? this.queer : false;
+        return queer_suit ? new Card(queer_suit | real.rank) : real;
     }
 
 }
