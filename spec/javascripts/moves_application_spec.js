@@ -27,7 +27,7 @@ describe('game rules', () => {
         ['deck', 'pile', 'player'].forEach(a => {
             if (diff[a] !== false) diff.list.push(a)
         });
-        ['on_move', 'continuance', 'attack', 'eights', 'suit'].forEach(a => {
+        ['on_move', 'continuance', 'attack', 'eights', 'queer'].forEach(a => {
             if (state[a] !== new_state[a]) diff.list.push(a);
         });
 
@@ -151,8 +151,8 @@ describe('game rules', () => {
             expect(diff.pile).toBe(1);
             expect(diff.player).toBe(-1);
             expect(new_state.continuance).toBe(true);
-            expect(new_state.suit).toBe(true);
-            expect(diff.list).toEqual(['pile', 'player', 'suit']);
+            expect(new_state.queer).toBe(true);
+            expect(diff.list).toEqual(['pile', 'player', 'queer']);
         });
 
         it('change', () => {
@@ -163,12 +163,12 @@ describe('game rules', () => {
                         []
                     ],
                     continuance: true,
-                    suit: true
+                    queer: true
                 }),
                 new QueerMove(cards.ACORNS)
             );
-            expect(new_state.suit).toBe(cards.ACORNS);
-            expect(diff.list).toEqual(['on_move', 'suit']);
+            expect(new_state.queer).toBe(cards.ACORNS);
+            expect(diff.list).toEqual(['on_move', 'queer']);
         });
 
         it('change - the same', () => {
@@ -179,12 +179,12 @@ describe('game rules', () => {
                         []
                     ],
                     continuance: true,
-                    suit: true
+                    queer: true
                 }),
                 new QueerMove(null)
             );
-            expect(new_state.suit).toBe(null);
-            expect(diff.list).toEqual(['on_move', 'suit']);
+            expect(new_state.queer).toBe(null);
+            expect(diff.list).toEqual(['on_move', 'queer']);
         });
 
     });

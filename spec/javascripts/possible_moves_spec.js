@@ -45,7 +45,7 @@ describe('possible moves', () => {
     });
 
     it('after queen', () => {
-        let actions = at_situation(new Card(cards.HEARTS | cards.QUEEN), {continuance: true, suit: true});
+        let actions = at_situation(new Card(cards.HEARTS | cards.QUEEN), {continuance: true, queer: true});
         expect(actions).toEqual(['queer']);
     });
 

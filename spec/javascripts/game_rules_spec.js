@@ -283,7 +283,7 @@ describe('game rules', () => {
         it('queen', () => {
             let turn = new Turn(GameState.at({
                 pile: [new Card(cards.HEARTS | cards.QUEEN)],
-                suit: true
+                queer: true
             }));
             let move = turn.selectQueenSuit();
             expect(move).toBeValidMove();
@@ -292,7 +292,7 @@ describe('game rules', () => {
         it('queen with change', () => {
             let turn = new Turn(GameState.at({
                 pile: [new Card(cards.HEARTS | cards.QUEEN)],
-                suit: true
+                queer: true
             }));
             let move = turn.selectQueenSuit(cards.BELLS);
             expect(move).toBeValidMove();

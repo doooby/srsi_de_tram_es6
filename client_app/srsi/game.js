@@ -45,7 +45,7 @@ export class Game {
 
 }
 
-Game.statuses = ['continuance', 'attack', 'suit', 'eights'];
+Game.statuses = ['continuance', 'attack', 'queer', 'eights'];
 Game.knownEvents = ['move', 'beginTurn'];
 
 var _translation_finder = (data, keys, i) => {
@@ -73,7 +73,7 @@ export class GameState {
         this.continuance = state.continuance;
         this.attack = state.attack;
         this.eights = state.eights;
-        this.suit = state.suit;
+        this.queer = state.queer;
     }
 
     duplicate () {
@@ -96,7 +96,7 @@ export class GameState {
 
     pileCard () {
         let real = this.pile[this.pile.length - 1];
-        return this.suit === null ? real : new Card(this.suit | real.rank);
+        return this.queer === null ? real : new Card(this.suit | real.rank);
     }
 
 }
@@ -109,14 +109,14 @@ GameState.empty = new GameState({
     continuance: false,
     attack: 0,
     eights: 0,
-    suit: null
+    queer: null
 });
 
 GameState.at = function (options) {
     let state = GameState.empty.duplicate();
     if (typeof options !== 'object') return state;
 
-    ['deck', 'pile', 'players', 'continuance', 'attack', 'suit', 'eights'].forEach(a => {
+    ['deck', 'pile', 'players', 'continuance', 'attack', 'queer', 'eights'].forEach(a => {
        if (options[a]) state[a] = options[a];
     });
 
@@ -178,7 +178,7 @@ export class Turn {
     }
 
     possibleActions () {
-        if (this.state.suit === true) return ['queer'];
+        if (this.state.queer === true) return ['queer'];
         else if (this.state.eights > 0) return ['draw', 'lay'];
 
         let passive = 'draw';
@@ -323,7 +323,7 @@ export class LayMove extends Move {
                 break;
 
             case cards.QUEEN:
-                state.suit = true;
+                state.queer = true;
                 end_of_move = false;
                 break;
 
@@ -348,14 +348,14 @@ export class QueerMove extends Move {
     }
 
     evaluate (context) {
-        if (context.state.suit !== true) {
+        if (context.state.queer !== true) {
             this.error = 'no_queen';
             this.valid = false;
         }
     }
 
     applyTo (state) {
-        state.suit = this.suit;
+        state.queer = this.suit;
         state.continuance = true;
         state.toNextPlayer();
     }
