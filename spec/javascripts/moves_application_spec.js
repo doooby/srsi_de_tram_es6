@@ -44,7 +44,7 @@ describe('game rules', () => {
                         []
                     ]
                 }),
-                new LayMove(0, 1)
+                new LayMove(1)
             );
             expect(diff.pile).toBe(1);
             expect(new_state.pile[1].id()).toBe(state.players[0][1].id());
@@ -62,7 +62,7 @@ describe('game rules', () => {
                     continuance: true,
                     attack: 5
                 }),
-                new LayMove(0, 0)
+                new LayMove(0)
             );
             expect(diff.pile).toBe(1);
             expect(diff.player).toBe(-1);
@@ -77,7 +77,7 @@ describe('game rules', () => {
                         []
                     ]
                 }),
-                new LayMove(0, 0)
+                new LayMove(0)
             );
             expect(diff.pile).toBe(1);
             expect(diff.player).toBe(-1);
@@ -95,7 +95,7 @@ describe('game rules', () => {
                     continuance: true,
                     attack: 3
                 }),
-                new LayMove(0, 0)
+                new LayMove(0)
             );
             expect(diff.pile).toBe(1);
             expect(diff.player).toBe(-1);
@@ -109,7 +109,7 @@ describe('game rules', () => {
                         []
                     ]
                 }),
-                new LayMove(0, 0)
+                new LayMove(0)
             );
             expect(diff.pile).toBe(1);
             expect(diff.player).toBe(-1);
@@ -125,7 +125,7 @@ describe('game rules', () => {
                         []
                     ]
                 }),
-                new LayMove(0, 0)
+                new LayMove(0)
             );
             expect(diff.pile).toBe(1);
             expect(diff.player).toBe(-1);
@@ -146,7 +146,7 @@ describe('game rules', () => {
                     ],
                     continuance: true
                 }),
-                new LayMove(0, 0)
+                new LayMove(0)
             );
             expect(diff.pile).toBe(1);
             expect(diff.player).toBe(-1);
@@ -163,7 +163,7 @@ describe('game rules', () => {
                     ],
                     continuance: true
                 }),
-                new QueerMove(0, cards.ACORNS)
+                new QueerMove(cards.ACORNS)
             );
             expect(new_state.suit).toBe(cards.ACORNS);
             expect(diff.list).toEqual(['on_move', 'suit']);
@@ -178,7 +178,7 @@ describe('game rules', () => {
                     ],
                     continuance: true
                 }),
-                new QueerMove(0)
+                new QueerMove()
             );
             expect(new_state.suit).toBe(null);
             expect(diff.list).toEqual(['on_move']);
@@ -196,7 +196,7 @@ describe('game rules', () => {
                     ],
                     continuance: true
                 }),
-                new LayMove(0, 0)
+                new LayMove(0)
             );
             expect(diff.pile).toBe(1);
             expect(diff.player).toBe(-1);
@@ -211,7 +211,7 @@ describe('game rules', () => {
                         []
                     ]
                 }),
-                new LayMove(0, 0)
+                new LayMove(0)
             );
             expect(diff.pile).toBe(1);
             expect(diff.player).toBe(-1);
@@ -229,7 +229,7 @@ describe('game rules', () => {
                     continuance: true,
                     eights: 1
                 }),
-                new LayMove(0, 0)
+                new LayMove(0)
             );
             expect(diff.pile).toBe(1);
             expect(diff.player).toBe(-1);
@@ -246,7 +246,7 @@ describe('game rules', () => {
                     continuance: true,
                     eights: 2
                 }),
-                new LayMove(0, 0)
+                new LayMove(0)
             );
             expect(diff.pile).toBe(1);
             expect(diff.player).toBe(-1);
@@ -265,7 +265,7 @@ describe('game rules', () => {
                     continuance: true,
                     eights: 2
                 }),
-                new DrawMove(0)
+                new DrawMove()
             );
             expect(diff.deck).toBe(-1);
             expect(diff.pile).toBe(-1);
@@ -287,7 +287,7 @@ describe('game rules', () => {
                     ],
                     continuance: true
                 }),
-                new DrawMove(0)
+                new DrawMove()
             );
             expect(diff.deck).toBe(-1);
             expect(diff.player).toBe(1);
@@ -307,7 +307,7 @@ describe('game rules', () => {
                 ],
                 continuance: true
             }),
-            new DrawMove(0)
+            new DrawMove()
         );
         expect(diff.pile).toBe(-1);
         expect(diff.player).toBe(1);
@@ -327,7 +327,7 @@ describe('game rules', () => {
                 continuance: true,
                 attack: 2
             }),
-            new DrawMove(0)
+            new DrawMove()
         );
         expect(diff.deck).toBe(-2);
         expect(diff.player).toBe(2);
@@ -347,7 +347,7 @@ describe('game rules', () => {
                     []
                 ]
             }),
-            new NoMove(0)
+            new NoMove()
         );
         expect(diff.list).toEqual(['on_move']);
     });

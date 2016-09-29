@@ -139,45 +139,45 @@ export class Turn {
     }
 
     lay (card_i) {
-        let move = new LayMove(this.state.on_move, card_i);
+        let move = new LayMove(card_i);
         move.evaluate(this);
         return move;
     }
 
     draw () {
-        let move = new DrawMove(this.state.on_move);
+        let move = new DrawMove();
         move.evaluate(this);
         return move;
     }
 
     doNothing () {
-        let move = new NoMove(this.state.on_move);
+        let move = new NoMove();
         move.evaluate(this);
         return move;
     }
 
     selectQueenSuit (suit) {
         if (suit === undefined) suit = null;
-        return new QueerMove(this.state.on_move, suit);
+        return new QueerMove(suit);
     }
 
     finishMove (move, game) {
-        this.moves.push(move);
-
-        // modify others
-        game.triggerEvent('move', move);
-
-        // modify self
-        let new_state = move.applyTo(game.state);
-        let terminating = game.state.on_move !== new_state.on_move;
-        if (terminating) this.state = new_state;
-
-
-        if (terminating) {
-            let next_player_i = this.player_i + 1;
-            if (next_player_i === game.players.length) next_player_i = 0;
-            game.triggerEvent('beginTurn', next_player_i);
-        }
+        //this.moves.push(move);
+        //
+        //// modify others
+        //game.triggerEvent('move', move);
+        //
+        //// modify self
+        //let new_state = move.applyTo(game.state);
+        //let terminating = game.state.on_move !== new_state.on_move;
+        //if (terminating) this.state = new_state;
+        //
+        //
+        //if (terminating) {
+        //    let next_player_i = this.player_i + 1;
+        //    if (next_player_i === game.players.length) next_player_i = 0;
+        //    game.triggerEvent('beginTurn', next_player_i);
+        //}
     }
 
     possibleActions () {
@@ -203,9 +203,8 @@ export class Turn {
 
 class Move {
 
-    constructor (player_i) {
+    constructor () {
         this.valid = true;
-        this.player_i = player_i;
     }
 
     serialize () {
@@ -251,7 +250,7 @@ export class DrawMove extends Move {
         if (to_take >= state.deck.length && left_in_pile > 0) {
             state.deck = state.deck.concat(state.pile.splice(0, left_in_pile));
         }
-        state.players[this.player_i] = state.players[this.player_i].concat(state.deck.splice(0, to_take));
+        state.players[state.on_move] = state.players[state.on_move].concat(state.deck.splice(0, to_take));
         state.toNextPlayer();
     }
 
@@ -259,8 +258,8 @@ export class DrawMove extends Move {
 
 export class LayMove extends Move {
 
-    constructor (player_i, card_i) {
-        super(player_i);
+    constructor (card_i) {
+        super();
         this.card_i = card_i;
     }
 
@@ -308,7 +307,7 @@ export class LayMove extends Move {
     }
 
     applyTo (state) {
-        let card = state.players[this.player_i].splice(this.card_i, 1)[0];
+        let card = state.players[state.on_move].splice(this.card_i, 1)[0];
         state.pile.push(card);
 
         let attack = state.attack, eights = state.eights;
@@ -349,8 +348,8 @@ export class LayMove extends Move {
 
 export class QueerMove extends Move {
 
-    constructor (player_i, suit) {
-        super(player_i);
+    constructor (suit) {
+        super();
         this.suit = suit;
     }
 
