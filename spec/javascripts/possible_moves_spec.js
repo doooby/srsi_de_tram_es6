@@ -1,20 +1,24 @@
 import {cards, Card} from '../../client_app/srsi/deck';
-import {Turn} from '../../client_app/srsi/game';
-import {HelperBuilder} from './support/helper_builder';
+import {GameState, Turn} from '../../client_app/srsi/game';
 
 
 
 describe('possible moves', () => {
 
-    var at_situation = HelperBuilder.possibleActionsFor;
-/*
+    var at_situation = function (pile_card, state_at) {
+        state_at['pile'] = [pile_card];
+        if (!state_at['players']) state_at['players'] = [[]];
+        let turn = new Turn(GameState.at(state_at));
+        return turn.possibleActions();
+    };
+
     it('on standard situation', () => {
         let actions = at_situation(new Card(cards.HEARTS | cards.NINE), {continuance: true});
         expect(actions).toEqual(['draw', 'lay']);
     });
 
     it('on non-continuance', () => {
-        let actions = at_situation(new Card(cards.DRAGON));
+        let actions = at_situation(new Card(cards.DRAGON), {});
         expect(actions).toEqual(['draw', 'lay']);
     });
 
@@ -29,52 +33,37 @@ describe('possible moves', () => {
     });
 
     it('cannot lay ace as last', () => {
-        let game = HelperBuilder.anonymousGameAt(({
-            pile: [new Card(cards.BELLS | cards.ACE)],
-            player1: [new Card(cards.ACORNS | cards.ACE)],
-            stats: {continuance: true}
-        }));
-        let turn = new Turn(game, 0);
-        expect(turn.possibleActions()).toEqual(['stay']);
+        let actions = at_situation(new Card(cards.BELLS | cards.ACE), {
+            players: [[new Card(cards.ACORNS | cards.ACE)]], continuance: true});
+        expect(actions).toEqual(['stay']);
     });
 
     it('cannot lay ace as last - discontinued', () => {
-        let game = HelperBuilder.anonymousGameAt(({
-            pile: [new Card(cards.BELLS | cards.NINE)],
-            player1: [new Card(cards.BELLS | cards.ACE)]
-        }));
-        let turn = new Turn(game, 0);
-        expect(turn.possibleActions()).toEqual(['draw']);
+        let actions = at_situation(new Card(cards.BELLS | cards.NINE), {
+            players: [[new Card(cards.BELLS | cards.ACE)]]});
+        expect(actions).toEqual(['draw']);
     });
 
     it('after queen', () => {
-        let game = HelperBuilder.anonymousGameAt(({
-            pile: [new Card(cards.DRAGON)],
-            player1: [new Card(cards.HEARTS | cards.QUEEN)]
-        }));
-        let turn = new Turn(game, 0);
-        turn.finishMove(turn.lay(0), game);
-        expect(turn.possibleActions()).toEqual(['queer']);
+        let actions = at_situation(new Card(cards.HEARTS | cards.QUEEN), {continuance: true, suit: true});
+        expect(actions).toEqual(['queer']);
     });
 
     it('after eight', () => {
-        let game = HelperBuilder.anonymousGameAt(({
-            pile: [new Card(cards.DRAGON)],
-            player1: [new Card(cards.HEARTS | cards.EIGHT)]
-        }));
-        let turn = new Turn(game, 0);
-        turn.finishMove(turn.lay(0), game);
-        expect(turn.possibleActions()).toEqual(['draw', 'lay']);
+        let actions = at_situation(new Card(cards.HEARTS | cards.EIGHT), {continuance: true, eights: 1});
+        expect(actions).toEqual(['draw', 'lay']);
+    });
+
+    it('after eight, having no more', () => {
+        let actions = at_situation(new Card(cards.HEARTS | cards.EIGHT), {
+            players: [[new Card(cards.HEARTS | cards.NINE)]], continuance: true, eights: 1});
+        expect(actions).toEqual(['draw', 'lay']);
     });
 
     it('attacked, having only ace', () => {
-        let game = HelperBuilder.anonymousGameAt(({
-            pile: [new Card(cards.DRAGON)],
-            player1: [new Card(cards.HEARTS | cards.ACE)],
-            stats: {continuance: true, attack: 5}
-        }));
-        let turn = new Turn(game, 0);
-        expect(turn.possibleActions()).toEqual(['devour']);
+        let actions = at_situation(new Card(cards.DRAGON), {
+            players: [[new Card(cards.BELLS | cards.ACE)]], continuance: true, attack: 5});
+        expect(actions).toEqual(['devour']);
     });
-*/
+
 });

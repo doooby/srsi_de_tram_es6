@@ -151,7 +151,8 @@ describe('game rules', () => {
             expect(diff.pile).toBe(1);
             expect(diff.player).toBe(-1);
             expect(new_state.continuance).toBe(true);
-            expect(diff.list).toEqual(['pile', 'player']);
+            expect(new_state.suit).toBe(true);
+            expect(diff.list).toEqual(['pile', 'player', 'suit']);
         });
 
         it('change', () => {
@@ -161,7 +162,8 @@ describe('game rules', () => {
                         [],
                         []
                     ],
-                    continuance: true
+                    continuance: true,
+                    suit: true
                 }),
                 new QueerMove(cards.ACORNS)
             );
@@ -176,12 +178,13 @@ describe('game rules', () => {
                         [],
                         []
                     ],
-                    continuance: true
+                    continuance: true,
+                    suit: true
                 }),
-                new QueerMove()
+                new QueerMove(null)
             );
             expect(new_state.suit).toBe(null);
-            expect(diff.list).toEqual(['on_move']);
+            expect(diff.list).toEqual(['on_move', 'suit']);
         });
 
     });

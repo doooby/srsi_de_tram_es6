@@ -41,7 +41,8 @@ var game = new Game(
                 ace_end: 'Eso nelze zahrát jako poslední kartu',
                 attack: 'Jsi pod útokem!',
                 attack_on_ten: 'Na desítku nelze zahrát útočnou kartu.',
-                eights: 'Polož další osmu nebo ukonči dobráním.'
+                eights: 'Polož další osmu nebo ukonči dobráním.',
+                no_queen: 'Nebyla zahrána dáma.'
             }
         }
 

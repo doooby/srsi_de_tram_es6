@@ -131,11 +131,6 @@ export class Turn {
 
     constructor (state) {
         this.state = state;
-        this.moves = [];
-    }
-
-    lastMove () {
-        return this.moves[this.moves.length - 1];
     }
 
     lay (card_i) {
@@ -158,7 +153,9 @@ export class Turn {
 
     selectQueenSuit (suit) {
         if (suit === undefined) suit = null;
-        return new QueerMove(suit);
+        let move = new QueerMove(suit);
+        move.evaluate(this);
+        return move;
     }
 
     finishMove (move, game) {
@@ -181,19 +178,15 @@ export class Turn {
     }
 
     possibleActions () {
-        let last_move = this.lastMove();
-        if (last_move) {
-            if (last_move.queer) return ['queer'];
-            else if (last_move.eights) return ['draw', 'lay'];
-            return [];
-        }
+        if (this.state.suit === true) return ['queer'];
+        else if (this.state.eights > 0) return ['draw', 'lay'];
 
         let passive = 'draw';
-        if (this.status('continuance')) {
-            if (this.pileCard().rank === cards.ACE) passive = 'stay';
-            else if (this.status('attack') > 0) passive = 'devour';
+        if (this.state.continuance) {
+            if (this.state.pileCard().rank === cards.ACE) passive = 'stay';
+            else if (this.state.attack > 0) passive = 'devour';
         }
-        let player_cards = this.playerCards();
+        let player_cards = this.state.onMovePlayerCards();
         let last_is_ace = player_cards.length === 1 && player_cards[0].rank === cards.ACE;
 
         return last_is_ace ? [passive] : [passive, 'lay'];
@@ -330,6 +323,7 @@ export class LayMove extends Move {
                 break;
 
             case cards.QUEEN:
+                state.suit = true;
                 end_of_move = false;
                 break;
 
@@ -353,8 +347,15 @@ export class QueerMove extends Move {
         this.suit = suit;
     }
 
+    evaluate (context) {
+        if (context.state.suit !== true) {
+            this.error = 'no_queen';
+            this.valid = false;
+        }
+    }
+
     applyTo (state) {
-        if (this.suit) state.suit = this.suit;
+        state.suit = this.suit;
         state.continuance = true;
         state.toNextPlayer();
     }

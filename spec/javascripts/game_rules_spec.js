@@ -1,5 +1,5 @@
 import {cards, Card} from '../../client_app/srsi/deck';
-import {Game, GameState, Player, Turn} from '../../client_app/srsi/game';
+import {GameState, Turn} from '../../client_app/srsi/game';
 
 
 describe('game rules', () => {
@@ -272,9 +272,18 @@ describe('game rules', () => {
             expect(move).toBeValidMove();
         });
 
-        it('queen', () => {
+        it('queen invalid', () => {
             let turn = new Turn(GameState.at({
                 pile: [new Card(cards.HEARTS | cards.QUEEN)]
+            }));
+            let move = turn.selectQueenSuit();
+            expect(move).toBeInvalidMove('no_queen');
+        });
+
+        it('queen', () => {
+            let turn = new Turn(GameState.at({
+                pile: [new Card(cards.HEARTS | cards.QUEEN)],
+                suit: true
             }));
             let move = turn.selectQueenSuit();
             expect(move).toBeValidMove();
@@ -282,7 +291,8 @@ describe('game rules', () => {
 
         it('queen with change', () => {
             let turn = new Turn(GameState.at({
-                pile: [new Card(cards.HEARTS | cards.QUEEN)]
+                pile: [new Card(cards.HEARTS | cards.QUEEN)],
+                suit: true
             }));
             let move = turn.selectQueenSuit(cards.BELLS);
             expect(move).toBeValidMove();
