@@ -78,81 +78,6 @@ describe('game rules', () => {
             expect(move).toBeValidMove();
         });
 
-        it('nine on ace', () => {
-            let turn = new Turn(GameState.at({
-                pile: [new Card(cards.HEARTS | cards.ACE)],
-                players: [
-                    [new Card(cards.HEARTS | cards.NINE)]
-                ],
-                continuance: true
-            }));
-            let move = turn.lay(0);
-            expect(move).toBeInvalidMove('ace');
-        });
-
-        it('nine on ace - discontinued', () => {
-            let turn = new Turn(GameState.at({
-                pile: [new Card(cards.HEARTS | cards.ACE)],
-                players: [
-                    [new Card(cards.HEARTS | cards.NINE)]
-                ]
-            }));
-            let move = turn.lay(0);
-            expect(move).toBeValidMove();
-        });
-
-        it('ace on ace', () => {
-            let turn = new Turn(GameState.at({
-                pile: [new Card(cards.HEARTS | cards.ACE)],
-                players: [
-                    [new Card(cards.ACORNS | cards.ACE), new Card(0)]
-                ],
-                continuance: true
-            }));
-            let move = turn.lay(0);
-            expect(move).toBeValidMove();
-        });
-
-        it('cannot draw on ace', () => {
-            let turn = new Turn(GameState.at({
-                pile: [new Card(cards.HEARTS | cards.ACE)],
-                continuance: true
-            }));
-            let move = turn.draw();
-            expect(move).toBeInvalidMove('ace');
-        });
-
-        it('can draw on ace - discontinued', () => {
-            let turn = new Turn(GameState.at({
-                deck: [new Card(0)],
-                pile: [new Card(cards.HEARTS | cards.ACE)]
-            }));
-            let move = turn.draw();
-            expect(move).toBeValidMove();
-            /*
-             turn.finishMove(move, game);
-             expect(game.continuance).toBe(false);
-             expect(game.players[move.player_i].cards.length).toBe(1);
-             */
-        });
-
-        it('cannot do just nothing - only on ace', () => {
-            let turn = new Turn(GameState.at({
-                pile: [new Card(cards.HEARTS | cards.ACE)]
-            }));
-            let move = turn.doNothing();
-            expect(move).toBeInvalidMove('nothing');
-
-            /*
-             game.continuance = true;
-             turn = new Turn(game, 0);
-             move = turn.doNothing();
-             expect(move).toBeValidMove();
-             turn.finishMove(move, game);
-             expect(game.continuance).toBe(false);
-             */
-        });
-
         it('simply draw', () => {
             let turn = new Turn(GameState.at({
                 deck: [new Card(0), new Card(0)],
@@ -160,14 +85,6 @@ describe('game rules', () => {
             }));
             let move = turn.draw();
             expect(move).toBeValidMove();
-
-            /*
-             turn.finishMove(move, game);
-             expect(game.continuance).toBe(false);
-             expect(game.deck.length).toBe(1);
-             expect(game.pile.length).toBe(1);
-             expect(game.players[move.player_i].cards.length).toBe(1);
-             */
         });
 
         it('simply draw - not enough', () => {
@@ -226,15 +143,6 @@ describe('game rules', () => {
             }));
             let move = turn.draw();
             expect(move).toBeValidMove();
-
-            /*
-             turn.finishMove(move, game);
-             expect(game.attack).toBe(0);
-             expect(game.continuance).toBe(falseattacks);
-             expect(game.deck.length).toBe(0);
-             expect(game.pile.length).toBe(1);
-             expect(game.players[move.player_i].cards.length).toBe(2);
-             */
         });
 
         it('draw while attacked - not enough', () => {
@@ -393,6 +301,67 @@ describe('game rules', () => {
     });
 
     describe('special rules', () => {
+
+        it('nine on ace', () => {
+            let turn = new Turn(GameState.at({
+                pile: [new Card(cards.HEARTS | cards.ACE)],
+                players: [
+                    [new Card(cards.HEARTS | cards.NINE)]
+                ],
+                continuance: true
+            }));
+            let move = turn.lay(0);
+            expect(move).toBeInvalidMove('ace');
+        });
+
+        it('nine on ace - discontinued', () => {
+            let turn = new Turn(GameState.at({
+                pile: [new Card(cards.HEARTS | cards.ACE)],
+                players: [
+                    [new Card(cards.HEARTS | cards.NINE)]
+                ]
+            }));
+            let move = turn.lay(0);
+            expect(move).toBeValidMove();
+        });
+
+        it('ace on ace', () => {
+            let turn = new Turn(GameState.at({
+                pile: [new Card(cards.HEARTS | cards.ACE)],
+                players: [
+                    [new Card(cards.ACORNS | cards.ACE), new Card(0)]
+                ],
+                continuance: true
+            }));
+            let move = turn.lay(0);
+            expect(move).toBeValidMove();
+        });
+
+        it('cannot draw on ace', () => {
+            let turn = new Turn(GameState.at({
+                pile: [new Card(cards.HEARTS | cards.ACE)],
+                continuance: true
+            }));
+            let move = turn.draw();
+            expect(move).toBeInvalidMove('ace');
+        });
+
+        it('can draw on ace - discontinued', () => {
+            let turn = new Turn(GameState.at({
+                deck: [new Card(0)],
+                pile: [new Card(cards.HEARTS | cards.ACE)]
+            }));
+            let move = turn.draw();
+            expect(move).toBeValidMove();
+        });
+
+        it('cannot do just nothing - only on ace', () => {
+            let turn = new Turn(GameState.at({
+                pile: [new Card(cards.HEARTS | cards.ACE)]
+            }));
+            let move = turn.doNothing();
+            expect(move).toBeInvalidMove('nothing');
+        });
 
         it('cannot end with ace', () => {
             let turn = new Turn(GameState.at({

@@ -8,7 +8,6 @@ export class Game {
         this.pile = [];
         this.players = players;
         this.players.forEach( p => p.cards = [] );
-        this.clearStats();
 
         if (!options) options ={};
 
@@ -24,13 +23,6 @@ export class Game {
     dealCards () {
         this.players.forEach( p => p.cards = this.deck.splice(0, 6) );
         this.pile = this.deck.splice(0, 1);
-    }
-
-    clearStats () {
-        this.continuance = false;
-        this.attack = 0;
-        this.eights = 0;
-        this.suit = null;
     }
 
     attachEvent (key, fn) {
@@ -215,15 +207,6 @@ export class Turn {
         return last_is_ace ? [passive] : [passive, 'lay'];
     }
 
-    static clearStats () {
-        return {
-            continuance: false,
-            attack: 0,
-            suit: null,
-            eights: 0
-        };
-    }
-
 }
 
 class Move {
@@ -253,31 +236,36 @@ export class DrawMove extends Move {
             return;
         }
 
-        this.to_take = 1;
-        let attack = context.status('attack'), eights = context.status('eights');
-        if (attack > 0) this.to_take = attack;
-        else if (eights > 0) {
-            this.to_take = eights;
-            this.continuance = true;
-        }
+        let attack = context.status('attack'), eights = context.status('eights'), to_take = 1;
+        if (attack > 0) to_take = attack;
+        else if (eights > 0) to_take = eights;
 
-        if (this.to_take > context.cards_left()) {
+        if (to_take > context.cards_left()) {
             this.error = 'not_enough_cards';
             this.valid = false;
         }
     }
 
-    applyTo (game) {
-        let left_in_pile = game.pile.length - 1;
-        if (this.to_take >= game.deck.length && left_in_pile > 0) {
-            game.deck = game.deck.concat(game.pile.splice(0, left_in_pile));
+    applyTo (state) {
+        state.continuance = false;
+
+        let attack = state.attack, eights = state.eights, to_take = 1;
+        if (attack > 0) {
+            to_take = attack;
+            state.attack = 0;
+        }
+        else if (eights > 0) {
+            to_take = eights;
+            state.continuance = true;
+            state.eights = 0;
         }
 
-        let player = game.players[this.player_i];
-        player.cards = player.cards.concat(game.deck.splice(0, this.to_take));
-
-        game.clearStats();
-        if (this.continuance) game.continuance = true;
+        let left_in_pile = state.pile.length - 1;
+        if (to_take >= state.deck.length && left_in_pile > 0) {
+            state.deck = state.deck.concat(state.pile.splice(0, left_in_pile));
+        }
+        state.players[this.player_i] = state.players[this.player_i].concat(state.deck.splice(0, to_take));
+        state.toNextPlayer();
     }
 
 }
@@ -327,7 +315,7 @@ export class LayMove extends Move {
             if (card.rank === cards.EIGHT) {
                 this.eights = true;
 
-            } else if (context.eights > 0) {
+            } else if (context.status('eights') > 0) {
                 this.error = 'eights';
                 this.valid = false;
 
@@ -394,6 +382,7 @@ export class QueerMove extends Move {
     applyTo (state) {
         if (this.suit) state.suit = this.suit;
         state.continuance = true;
+        state.toNextPlayer();
     }
 
 }
@@ -411,8 +400,9 @@ export class NoMove extends Move {
         this.valid = false;
     }
 
-    applyTo (game) {
-        game.clearStats();
+    applyTo (state) {
+        state.continuance = false;
+        state.toNextPlayer();
     }
 
 }

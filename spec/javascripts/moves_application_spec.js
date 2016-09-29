@@ -38,14 +38,16 @@ describe('game rules', () => {
 
         it('simple lay', () => {
             let {diff, state, new_state} = state_after_move(GameState.at({
+                    pile: [new Card(cards.LEAVES | cards.NINE)],
                     players: [
-                        [new Card(cards.HEARTS | cards.NINE)],
+                        [new Card(cards.HEARTS | cards.NINE), new Card(cards.ACORNS | cards.NINE)],
                         []
                     ]
                 }),
-                new LayMove(0, 0)
+                new LayMove(0, 1)
             );
             expect(diff.pile).toBe(1);
+            expect(new_state.pile[1].id()).toBe(state.players[0][1].id());
             expect(diff.player).toBe(-1);
             expect(new_state.continuance).toBe(true);
             expect(diff.list).toEqual(['pile', 'player', 'on_move', 'continuance']);
@@ -164,7 +166,7 @@ describe('game rules', () => {
                 new QueerMove(0, cards.ACORNS)
             );
             expect(new_state.suit).toBe(cards.ACORNS);
-            expect(diff.list).toEqual(['suit']);
+            expect(diff.list).toEqual(['on_move', 'suit']);
         });
 
         it('change - the same', () => {
@@ -179,7 +181,7 @@ describe('game rules', () => {
                 new QueerMove(0)
             );
             expect(new_state.suit).toBe(null);
-            expect(diff.list).toEqual([]);
+            expect(diff.list).toEqual(['on_move']);
         });
 
     });
@@ -252,14 +254,102 @@ describe('game rules', () => {
             expect(diff.list).toEqual(['pile', 'player', 'eights']);
         });
 
-    });
-
-    describe('', () => {
-
-        it('', () => {
-
+        it('take eights', () => {
+            let {diff, state, new_state} = state_after_move(GameState.at({
+                    deck: [new Card(cards.LEAVES | cards.EIGHT), new Card(cards.BELLS | cards.EIGHT)],
+                    pile: [new Card(cards.HEARTS | cards.EIGHT), new Card(cards.ACORNS | cards.EIGHT)],
+                    players: [
+                        [],
+                        []
+                    ],
+                    continuance: true,
+                    eights: 2
+                }),
+                new DrawMove(0)
+            );
+            expect(diff.deck).toBe(-1);
+            expect(diff.pile).toBe(-1);
+            expect(diff.player).toBe(2);
+            expect(new_state.eights).toBe(0);
+            expect(diff.list).toEqual(['deck', 'pile', 'player', 'on_move', 'eights']);
         });
 
+    });
+
+    describe('passive moves', () => {
+
+        it('draw', () => {
+            let {diff, state, new_state} = state_after_move(GameState.at({
+                    deck: [new Card(cards.BELLS | cards.EIGHT), new Card(cards.ACORNS | cards.NINE)],
+                    players: [
+                        [],
+                        []
+                    ],
+                    continuance: true
+                }),
+                new DrawMove(0)
+            );
+            expect(diff.deck).toBe(-1);
+            expect(diff.player).toBe(1);
+            expect(new_state.players[0][0].id()).toBe(state.deck[0].id());
+            expect(new_state.continuance).toBe(false);
+            expect(diff.list).toEqual(['deck', 'player', 'on_move', 'continuance']);
+        });
+
+    });
+
+    it('draw with pile turn-over', () => {
+        let {diff, state, new_state} = state_after_move(GameState.at({
+                pile: [new Card(cards.BELLS | cards.EIGHT), new Card(cards.ACORNS | cards.NINE)],
+                players: [
+                    [],
+                    []
+                ],
+                continuance: true
+            }),
+            new DrawMove(0)
+        );
+        expect(diff.pile).toBe(-1);
+        expect(diff.player).toBe(1);
+        expect(new_state.players[0][0].id()).toBe(state.pile[0].id());
+        expect(new_state.continuance).toBe(false);
+        expect(diff.list).toEqual(['pile', 'player', 'on_move', 'continuance']);
+    });
+
+    it('draw after attack', () => {
+        let {diff, state, new_state} = state_after_move(GameState.at({
+                deck: [new Card(cards.LEAVES | cards.EIGHT), new Card(cards.BELLS | cards.EIGHT),
+                    new Card(cards.HEARTS | cards.EIGHT)],
+                players: [
+                    [],
+                    []
+                ],
+                continuance: true,
+                attack: 2
+            }),
+            new DrawMove(0)
+        );
+        expect(diff.deck).toBe(-2);
+        expect(diff.player).toBe(2);
+        expect(new_state.players[0][0].id()).toBe(state.deck[0].id());
+        expect(new_state.players[0][1].id()).toBe(state.deck[1].id());
+        expect(new_state.continuance).toBe(false);
+        expect(new_state.attack).toBe(0);
+        expect(diff.list).toEqual(['deck', 'player', 'on_move', 'continuance', 'attack']);
+    });
+
+    it('nothing after ace', () => {
+        let {diff, state, new_state} = state_after_move(GameState.at({
+                deck: [new Card(cards.HEARTS | cards.EIGHT)],
+                pile: [new Card(cards.LEAVES | cards.ACE)],
+                players: [
+                    [],
+                    []
+                ]
+            }),
+            new NoMove(0)
+        );
+        expect(diff.list).toEqual(['on_move']);
     });
 
 });
