@@ -7,20 +7,10 @@ describe('game rules', () => {
     beforeEach(function() {
         jasmine.addMatchers({
 
-            toBeValidMove: () => {return {compare: (move, termination) => {
-                if (termination === undefined) termination = true;
-
+            toBeValidMove: () => {return {compare: (move) => {
                 if (move.valid !== true) return {
                     pass: false,
                     message: 'Move is not valid, error=' + move.error
-                };
-
-                if (move.terminating() !== termination) return {
-                    pass: false,
-                    message: (termination ?
-                            'Expected move to terminate.' :
-                            'Expected move not to terminate.'
-                    )
                 };
 
                 return {pass: true};
@@ -279,7 +269,7 @@ describe('game rules', () => {
                 ]
             }));
             let move = turn.lay(0);
-            expect(move).toBeValidMove(false);
+            expect(move).toBeValidMove();
         });
 
         it('queen', () => {
@@ -376,13 +366,15 @@ describe('game rules', () => {
 
         it('lay multiple eights', () => {
             let turn = new Turn(GameState.at({
-                pile: [new Card(0), new Card(0), new Card(cards.HEARTS | cards.NINE)],
+                pile: [new Card(cards.HEARTS | cards.EIGHT)],
                 players: [
-                    [new Card(cards.HEARTS | cards.EIGHT), new Card(cards.ACORNS | cards.EIGHT)]
-                ]
+                    [new Card(cards.ACORNS | cards.EIGHT)]
+                ],
+                continuance: true,
+                eights: 1
             }));
             let move = turn.lay(0);
-            expect(move).toBeValidMove(false);
+            expect(move).toBeValidMove();
         });
 
         it('multiple eights - not enough cards', () => {
@@ -398,15 +390,17 @@ describe('game rules', () => {
             expect(move).toBeInvalidMove('not_enough_cards');
         });
 
-        it('lay multiple eights - only eights', () => {
+        it('only eights can be multiple', () => {
             let turn = new Turn(GameState.at({
-                pile: [new Card(0), new Card(0), new Card(cards.HEARTS | cards.NINE)],
+                pile: [new Card(cards.HEARTS | cards.EIGHT)],
                 players: [
-                    [new Card(cards.HEARTS | cards.EIGHT), new Card(cards.HEARTS | cards.TEN)]
-                ]
+                    [new Card(cards.HEARTS | cards.TEN)]
+                ],
+                continuance: true,
+                eights: 1
             }));
             let move = turn.lay(0);
-            expect(move).toBeValidMove(false);
+            expect(move).toBeInvalidMove('eights');
         });
 
     });

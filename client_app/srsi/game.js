@@ -178,10 +178,11 @@ export class Turn {
 
         // modify self
         let new_state = move.applyTo(game.state);
-        if (!move.terminating()) this.state = new_state;
+        let terminating = game.state.on_move !== new_state.on_move;
+        if (terminating) this.state = new_state;
 
 
-        if (move.terminating()) {
+        if (terminating) {
             let next_player_i = this.player_i + 1;
             if (next_player_i === game.players.length) next_player_i = 0;
             game.triggerEvent('beginTurn', next_player_i);
@@ -214,11 +215,6 @@ class Move {
     constructor (player_i) {
         this.valid = true;
         this.player_i = player_i;
-    }
-
-
-    terminating () {
-        return true;
     }
 
     serialize () {
@@ -308,14 +304,7 @@ export class LayMove extends Move {
                 return;
             }
 
-            if (card.rank === cards.QUEEN) {
-                this.queer = true
-            }
-
-            if (card.rank === cards.EIGHT) {
-                this.eights = true;
-
-            } else if (context.status('eights') > 0) {
+            else if (context.status('eights') > 0 && card.rank !== cards.EIGHT) {
                 this.error = 'eights';
                 this.valid = false;
 
@@ -326,10 +315,6 @@ export class LayMove extends Move {
 
         this.error = 'no_match';
         this.valid = false;
-    }
-
-    terminating () {
-        return this.queer !== true && this.eights !== true;
     }
 
     applyTo (state) {
