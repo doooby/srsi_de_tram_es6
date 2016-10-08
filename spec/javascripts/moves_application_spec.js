@@ -1,5 +1,5 @@
 import {cards, Card} from '../../client_app/srsi/deck';
-import {GameState, LayMove, DrawMove, QueerMove, NoMove} from '../../client_app/srsi/game';
+import {GameState, LayMove, DrawMove, QueerMove, NoMove} from '../../client_app/srsi/game_state';
 
 describe('game rules', () => {
 
@@ -15,8 +15,7 @@ describe('game rules', () => {
     }
 
     function state_after_move (state, move) {
-        let new_state = state.duplicate();
-        move.applyTo(new_state);
+        let new_state = move.applyTo(state);
 
         let diff = {
             deck: calc_cards_diff(state.deck, new_state.deck),

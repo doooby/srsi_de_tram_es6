@@ -1,5 +1,6 @@
 import {cards, Card} from '../../client_app/srsi/deck';
-import {GameState, Turn} from '../../client_app/srsi/game';
+import {Turn} from '../../client_app/srsi/game';
+import {GameState} from '../../client_app/srsi/game_state';
 
 
 describe('game rules', () => {
