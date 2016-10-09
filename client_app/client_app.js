@@ -64,3 +64,46 @@ window.apps[1].g._on_move = function (move) {
     window.apps[0].g.applyMove(move);
     window.apps[1].g.applyMove(move);
 };
+
+window.apps[1].g._on_turn = function () {
+    let turn = this.createTurn();
+    let actions = turn.possibleActions();
+    let move;
+
+    // first try to lay anything
+    if (actions.indexOf('lay') !== -1) {
+        actions.splice(actions.indexOf('lay'), 1);
+        let possible_moves = turn.state.players[this.state.on_move].map((_, i) => turn.lay(i)).filter(m => m.valid);
+        move = rand_pick(possible_moves);
+    }
+
+    // if not possible to lay, then choose something else
+    if (!move) switch (rand_pick(actions)) {
+        case 'draw':
+        case 'devour':
+            move = turn.draw();
+            break;
+
+        case 'stay':
+            move = turn.doNothing();
+            break;
+
+        case 'queer':
+            move = turn.selectQueenSuit(rand_pick(cards.SUITS));
+            break;
+
+    }
+
+    // fail
+    if (!move) {
+        console.log('failed to compute for', turn.state, 'actions=');
+        return;
+    }
+
+    console.log("hraju: ", move);
+    this.move(move);
+};
+
+function rand_pick (array) {
+    return array[Math.floor(Math.random()*array.length)]
+}

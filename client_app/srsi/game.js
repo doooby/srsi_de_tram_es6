@@ -43,6 +43,7 @@ export class Game {
         this.state = state;
         if (this.history !== undefined) this.history.push(state);
         this.triggerEvent('_on_modified');
+        if (this.state.on_move === this.local_player) this.triggerEvent('_on_turn');
     }
 
     triggerEvent () {
