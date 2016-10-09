@@ -81,6 +81,13 @@ export class DrawMove extends Move {
 
     evaluate (context) {
         let state = context.state, pile = state.pileCard();
+
+        if (state.continuance && state.queer) {
+            this.error = 'queer';
+            this.valid = false;
+            return;
+        }
+
         if (state.continuance && pile.rank === cards.ACE) {
             this.error = 'ace';
             this.valid = false;
@@ -132,7 +139,15 @@ export class LayMove extends Move {
     }
 
     evaluate (context) {
-        let state = context.state, card = state.onMovePlayerCards()[this.card_i], pile = state.pileCard();
+        let state = context.state
+
+        if (state.continuance && state.queer) {
+            this.error = 'queer';
+            this.valid = false;
+            return;
+        }
+
+        let card = state.onMovePlayerCards()[this.card_i], pile = state.pileCard();
 
         if (state.attack > 0 && (!card.isAttack() && card.rank !== cards.TEN)) {
             this.error = 'attack';
@@ -246,6 +261,12 @@ export class NoMove extends Move {
 
     evaluate (context) {
         let state = context.state, pile = state.pileCard();
+
+        if (state.continuance && state.queer) {
+            this.error = 'queer';
+            this.valid = false;
+            return;
+        }
 
         if (state.continuance && pile.rank === cards.ACE) {
             return;

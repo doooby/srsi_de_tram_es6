@@ -3,52 +3,62 @@ import {GameState, DrawMove, LayMove, QueerMove, NoMove} from './game_state';
 
 export class Game {
 
-    constructor (players, deck, options) {
-        if (deck === undefined) deck = cards.shuffleNewDeck();
-        this.deck = deck;
-        this.pile = [];
+    constructor (players) {
         this.players = players;
-        this.players.forEach( p => p.cards = [] );
+    }
 
-        if (!options) options ={};
+    begin (deck) {
+        let state = GameState.empty.duplicate();
+        state.deck = (deck === undefined) ? cards.shuffleNewDeck() : deck;
+        for (let i=0; i<this.players.length; i+=1) state.players[i] = state.deck.splice(0, 6);
+        state.pile = state.deck.splice(0, 1);
+        state.on_move = 0;
+        this.setState(state);
+    }
 
-        this.events = {};
-        let events = options['events'];
-        if (typeof events === 'object') {
-            for (let event_key of Object.keys(events)) this.attachEvent(event_key, events[event_key]);
+    attachEvents (events) {
+        this.triggerEvent = function () {
+            let args = Array.prototype.slice.call(arguments);
+            let callback = events[args.shift()];
+            if (callback) {
+                setTimeout(() => {
+                    callback.apply(this, args);
+                }, 0);
+            }
+        };
+    }
+
+    attachTranslations (translations) {
+        this.t = function (key) {
+            let value = _translation_finder(translations, key.split('.'), 0);
+            return value === undefined ? 'Missing text for key='+key : value;
         }
-
-        this.translations = options['translations'];
     }
 
-    dealCards () {
-        this.players.forEach( p => p.cards = this.deck.splice(0, 6) );
-        this.pile = this.deck.splice(0, 1);
+    createTurn () {
+        return new Turn(this.state);
     }
 
-    attachEvent (key, fn) {
-        if (Game.knownEvents.indexOf(key) === -1) throw 'bad argument: event name is unknown';
-        if (typeof  fn !== 'function') throw 'bad argument: is not function';
-        this.events[key] = fn;
+    move (move) {
+        if (move.valid) {
+            this.triggerEvent('move', move);
+            this.setState(move.applyTo(this.state));
+        } else {
+            this.triggerEvent('bad_move', move);
+        }
     }
 
-    triggerEvent () {
-        let args = Array.prototype.slice.call(arguments);
-        let callback = this.events[args.shift()];
-        if (callback) callback.apply(this, args);
+    setState (state) {
+        this.state = state;
+        this.triggerEvent('modified');
     }
 
-    t (key) {
-        let keys = ('translations.' + key).split('.');
-        let value = _translation_finder(this, keys, 0);
-        return value === undefined ? 'Missing text for key='+key : value;
-    }
+    triggerEvent () {}
+    t () {}
 
 }
 
-Game.knownEvents = ['move', 'beginTurn'];
-
-var _translation_finder = (data, keys, i) => {
+var _translation_finder = function (data, keys, i) {
     if (typeof data !== 'object') return undefined;
     let value = data[keys[i]];
     i += 1;
@@ -92,25 +102,6 @@ export class Turn {
         let move = new QueerMove(suit);
         move.evaluate(this);
         return move;
-    }
-
-    finishMove (move, game) {
-        //this.moves.push(move);
-        //
-        //// modify others
-        //game.triggerEvent('move', move);
-        //
-        //// modify self
-        //let new_state = move.applyTo(game.state);
-        //let terminating = game.state.on_move !== new_state.on_move;
-        //if (terminating) this.state = new_state;
-        //
-        //
-        //if (terminating) {
-        //    let next_player_i = this.player_i + 1;
-        //    if (next_player_i === game.players.length) next_player_i = 0;
-        //    game.triggerEvent('beginTurn', next_player_i);
-        //}
     }
 
     possibleActions () {

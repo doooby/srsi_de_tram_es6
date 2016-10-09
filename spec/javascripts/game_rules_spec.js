@@ -299,6 +299,17 @@ describe('game rules', () => {
             expect(move).toBeValidMove();
         });
 
+        it('queen & queer only', () => {
+            let turn = new Turn(GameState.at({
+                pile: [new Card(cards.HEARTS | cards.QUEEN)],
+                queer: true,
+                continuance: true
+            }));
+            expect(turn.draw()).toBeInvalidMove('queer');
+            expect(turn.lay(0)).toBeInvalidMove('queer');
+            expect(turn.doNothing()).toBeInvalidMove('queer');
+        });
+
     });
 
     describe('special rules', () => {
