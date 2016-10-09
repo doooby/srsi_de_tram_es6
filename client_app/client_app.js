@@ -1,16 +1,16 @@
-//= require ./handlebars_app
-
 'use strict';
 
 import {cards} from 'srsi/deck';
 import {Game, Player} from 'srsi/game';
+import HbApp from './handlebars_app';
 
-let game = new Game([
+
+let players = [
     new Player('ondra'),
     new Player('karel')
-]);
+];
 
-game.attachTranslations({
+let translations = {
     titles: {
         deck: 'Balík',
         pile: 'Kopa',
@@ -37,20 +37,30 @@ game.attachTranslations({
         no_queen: 'Nebyla zahrána dáma.',
         queer: 'Musíš vybrat novou barvu.'
     }
-});
+};
 
-self.HB_APP.game = game;
-game.attachEvents({
+let deck = cards.shuffleNewDeck();
 
-    modified: function () {
-        self.HB_APP.turns.push(this.state);
-        self.HB_APP.printTurn(this.createTurn());
-    },
+function create_app (container_selector, player) {
+    let game = new Game(players, player);
+    game.translations = translations;
+    let app = new HbApp(game, $(container_selector));
+    game.begin(deck.slice());
+    return app;
+}
 
-    bad_move: function (move) {
-        console.log(this);
-        self.HB_APP.printAlert(self.HB_APP.game.t('bad_move.' + move.error));
-    }
-});
 
-game.begin();
+window.apps = [
+    create_app('#container1', 0),
+    create_app('#container2', 1)
+];
+
+window.apps[0].g._on_move = function (move) {
+    window.apps[0].g.applyMove(move);
+    window.apps[1].g.applyMove(move);
+};
+
+window.apps[1].g._on_move = function (move) {
+    window.apps[0].g.applyMove(move);
+    window.apps[1].g.applyMove(move);
+};

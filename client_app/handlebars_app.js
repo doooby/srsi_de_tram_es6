@@ -3,53 +3,67 @@
 
 import {cards} from 'srsi/deck';
 
-Handlebars.registerHelper('debug', function(value) {
-    console.log('debug --- >', value);
-});
+export default class HbApp {
 
+    constructor (game, $container) {
+        this.$c = $container;
 
-var HB_APP = {
+        this.g = game;
+        let instance = this;
+        game._on_bad_move = function (move) {
+            instance.printAlert(this.t('bad_move.' + move.error));
+        };
+        game._on_modified = function () {
+            instance.printTurn(this.createTurn());
+        }
+    }
 
-    turns: [],
-
-    printTurn: function (turn) {
-        let $container = $('#container');
-        $container.html('');
+    printTurn (turn) {
+        this.$c.html('');
 
         // print Deck
-        $container.append(HandlebarsTemplates['section']({
+        this.$c.append(HandlebarsTemplates['section']({
             section: 'deck',
-            title: HB_APP.game.t('titles.deck'),
-            cards: HB_APP.generateCardsHelper(turn.state.deck, {visible: true})
+            title: this.g.t('titles.deck'),
+            cards: this.generateCardsHelper(turn.state.deck, {visible: true})
         }));
 
         // print Pile
-        $container.append(HandlebarsTemplates['section']({
+        this.$c.append(HandlebarsTemplates['section']({
             section: 'pile',
-            title: HB_APP.game.t('titles.pile'),
-            cards: HB_APP.generateCardsHelper(turn.state.pile, {visible: true}),
+            title: this.g.t('titles.pile'),
+            cards: this.generateCardsHelper(turn.state.pile, {visible: true}),
             queer: (turn.state.suit ? cards.transcribe(turn.state.suit) : null)
         }));
 
         // print Players
         turn.state.players.forEach((player, player_i) => {
+            let local_player = this.g.local_player === player_i;
             let on_turn = turn.state.on_move === player_i;
             let possible_actions = turn.possibleActions();
             let $html = $(HandlebarsTemplates['section']({
-                section: 'player',
-                title: HB_APP.game.t('titles.player') + ' - '+ HB_APP.game.players[player_i].name,
-                cards: HB_APP.generateCardsHelper(turn.state.players[player_i],
-                    {visible: true, can_lay: on_turn && (possible_actions.indexOf('lay') !== -1)}),
-                actions: (on_turn ? HB_APP.generateActionsHelper(turn, possible_actions) : null)
+                css_classes: [
+                    'player',
+                    (local_player ? 'local_player' : undefined),
+                    (on_turn ? 'on_turn' : undefined)
+                ].join(' '),
+                title: this.g.t('titles.player') + ' - '+ this.g.players[player_i].name,
+                cards: this.generateCardsHelper(turn.state.players[player_i],
+                    {
+                        visible: local_player,
+                        can_lay: on_turn && (possible_actions.indexOf('lay') !== -1)
+                    }
+                ),
+                actions: (local_player && on_turn ? this.generateActionsHelper(turn, possible_actions) : null),
             }));
-            if (on_turn) $html.on('click', '[data-action]', HB_APP.playerMove.bind(HB_APP, turn));
-            $container.append($html);
+            if (on_turn) $html.on('click', '[data-action]', this.playerMove.bind(this, turn));
+            this.$c.append($html);
         });
 
-        $container.append('<div id="printout"></div>');
-    },
+        this.$c.append('<div id="printout"></div>');
+    }
 
-    generateCardsHelper: function (_cards, context) {
+    generateCardsHelper (_cards, context) {
         let visible = !!context.visible;
         let can_lay = !!context.can_lay;
         return _cards.map((c, i) => {
@@ -58,21 +72,19 @@ var HB_APP = {
             }
             else return {index: i, hidden: true};
         });
-    },
+    }
 
-    generateActionsHelper: function (turn, actions) {
+    generateActionsHelper (turn, actions) {
         let buttons = [];
-
         actions.forEach(action => {
-
             switch (action) {
                 case 'draw':
                 case 'stay':
-                    buttons.push({action: action, text: HB_APP.game.t('actions.'+action)});
+                    buttons.push({action: action, text: this.g.t('actions.'+action)});
                     break;
 
                 case 'devour':
-                    buttons.push({action: action, text: HB_APP.game.t('actions.'+action) + ' ' + turn.state.attack});
+                    buttons.push({action: action, text: this.g.t('actions.'+action) + ' ' + turn.state.attack});
                     break;
 
                 case 'queer':
@@ -82,19 +94,18 @@ var HB_APP = {
                     break;
             }
         });
-
         return buttons;
-    },
+    }
 
-    clearAlert: function () {
-        $('#printout').html('');
-    },
+    clearAlert () {
+        this.$c.find('.printout').html('');
+    }
 
-    printAlert: function (text) {
-        $('#printout').html(HandlebarsTemplates['alert']({text: text, type: 'alert'}));
-    },
+    printAlert (text) {
+        this.$c.find('.printout').html(HandlebarsTemplates['alert']({text: text, type: 'alert'}));
+    }
 
-    playerMove: function (turn, e) {
+    playerMove (turn, e) {
         this.clearAlert();
         let $el = $(e.target);
         let move;
@@ -120,9 +131,7 @@ var HB_APP = {
                 break;
 
         }
-        HB_APP.game.move(move);
+        this.g.move(move);
     }
 
-};
-
-window.HB_APP = HB_APP;
+}

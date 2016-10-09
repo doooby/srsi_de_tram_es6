@@ -3,8 +3,9 @@ import {GameState, DrawMove, LayMove, QueerMove, NoMove} from './game_state';
 
 export class Game {
 
-    constructor (players) {
+    constructor (players, local_player) {
         this.players = players;
+        this.local_player = local_player;
     }
 
     begin (deck) {
@@ -18,21 +19,8 @@ export class Game {
 
     attachEvents (events) {
         this.triggerEvent = function () {
-            let args = Array.prototype.slice.call(arguments);
-            let callback = events[args.shift()];
-            if (callback) {
-                setTimeout(() => {
-                    callback.apply(this, args);
-                }, 0);
-            }
-        };
-    }
 
-    attachTranslations (translations) {
-        this.t = function (key) {
-            let value = _translation_finder(translations, key.split('.'), 0);
-            return value === undefined ? 'Missing text for key='+key : value;
-        }
+        };
     }
 
     createTurn () {
@@ -41,29 +29,45 @@ export class Game {
 
     move (move) {
         if (move.valid) {
-            this.triggerEvent('move', move);
-            this.setState(move.applyTo(this.state));
+            this.triggerEvent('_on_move', move);
         } else {
-            this.triggerEvent('bad_move', move);
+            this.triggerEvent('_on_bad_move', move);
         }
+    }
+
+    applyMove (move) {
+        this.setState(move.applyTo(this.state));
     }
 
     setState (state) {
         this.state = state;
-        this.triggerEvent('modified');
+        if (this.history !== undefined) this.history.push(state);
+        this.triggerEvent('_on_modified');
     }
 
-    triggerEvent () {}
-    t () {}
+    triggerEvent () {
+        let args = Array.prototype.slice.call(arguments);
+        let callback = this[args.shift()];
+        if (callback) {
+            setTimeout(() => {
+                callback.apply(this, args);
+            }, 0);
+        }
+    }
+
+    t (key) {
+        let value = _translation_finder(this.translations, key.split('.'), 0);
+        return value === undefined ? 'Missing text for key='+key : value;
+    }
 
 }
 
-var _translation_finder = function (data, keys, i) {
+function _translation_finder (data, keys, i) {
     if (typeof data !== 'object') return undefined;
     let value = data[keys[i]];
     i += 1;
     return i === keys.length ? value : _translation_finder(value, keys, i);
-};
+}
 
 export class Player {
 

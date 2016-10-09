@@ -19,7 +19,7 @@ export class Card {
     }
 }
 
-var transcriptions = {}, cards = [], suit_names = {};
+let transcriptions = {}, cards = [], suit_names = {};
 
 // suits
 cards.HEARTS = 0x10;  // 16 ♥
