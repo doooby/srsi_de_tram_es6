@@ -3,15 +3,11 @@
 import {cards} from 'srsi/deck';
 import {Game, Player} from 'srsi/game';
 import {Move} from 'srsi/game_state';
-
-
-import HbApp from './handlebars_app';
 import cable from 'cable/integration';
 
-let players = [
-    new Player('ondra'),
-    new Player('karel')
-];
+import HbApp from './handlebars_app';
+
+import RandomPossibleAI from 'ai/random_possible';
 
 let translations = {
     titles: {
@@ -44,88 +40,85 @@ let translations = {
 
 let deck = cards.shuffleNewDeck();
 
-function create_app (container_selector, player) {
-    let game = new Game(players, player);
+function create_app (container_selector, player_i) {
+    let game = new Game([
+        new Player('ondra'),
+        new Player('karel')
+    ], player_i);
     game.translations = translations;
     let app = new HbApp(game, $(container_selector));
-    game.begin(deck.slice());
-    app.channel = cable.openChannel('game', null, {
-        connected: function() { console.log('player '+player+' connected'); },
-        disconnected: function() { console.log('player '+player+' disconnected'); },
+
+    app.debug = true;
+    return app;
+}
+
+function set_player_as_ai (player) {
+    RandomPossibleAI(player, {
+
+        action: function (turn, move, action) {
+            setTimeout(() => {
+                console.log(player.player_i + ' moves', move.serialize(), move);
+                action();
+            }, 1000);
+        },
+
+        failed: function (turn, move) {
+            console.log(player.name + ' failed to compute for', turn.state, turn.possibleActions());
+        }
+
+    });
+}
+
+let localMatch = function (games) {
+    games.forEach(function (game) {
+        let others = games.filter(g => g !== game);
+
+        game.propagateMove = function (move) {
+            others.forEach(g => g.onPlayerMoved(move));
+        };
+
+    });
+};
+
+let cableMatch = function (game) {
+    let player = game.localPlayer();
+
+    let channel = cable.openChannel('game', null, {
+        connected: function() { console.log('player '+player.player_i+' connected'); },
+        disconnected: function() { console.log('player '+player.player_i+' disconnected'); },
         received: function(data) {
-            if (data.p === undefined || data.p === player) return;
-            console.log('player '+player+' received from '+data.p, data.d, Move.parse(data.d));
+            if (data.p === undefined || data.p === game.player_i) return;
+            console.log('player '+player.player_i+' received from '+data.p, data.d);
 
             switch (data.a) {
                 case 'move':
-                    game.triggerEvent('_on_move', Move.parse(data.d), data.p);
+                    console.log('received move from '+data.p, Move.parse(data.d));
+                    game.onPlayerMoved(Move.parse(data.d));
                     break;
             }
         }
 
     });
-    app.debug = true;
-    return app;
-}
+
+    game.propagateMove = function (move) {
+        channel.send({p: game.player_i, a: 'move', d: move.serialize()});
+    };
+
+};
 
 
-window.apps = [
+let apps = [
     create_app('#container1', 0),
     create_app('#container2', 1)
 ];
 
-for (let i=0; i<2; i+=1) {
+set_player_as_ai(apps[0].game.localPlayer());
+set_player_as_ai(apps[1].game.localPlayer());
 
-    window.apps[i].g._on_move = function (move, player) {
-        window.apps[i].g.applyMove(move);
-        if (player === i) window.apps[i].channel.send({p: i, a: 'move', d: move.serialize()});
-    };
+localMatch(apps.map(app => app.game));
+//apps.map(app => app.game).forEach(cableMatch);
 
-    window.apps[i].g._on_turn = function () {
-        let turn = this.createTurn();
-        let actions = turn.possibleActions();
-        let move;
+apps.forEach(app => app.game.begin(deck.slice()));
 
-        // first try to lay anything
-        if (actions.indexOf('lay') !== -1) {
-            actions.splice(actions.indexOf('lay'), 1);
-            let possible_moves = turn.state.players[this.state.on_move].map((_, i) => turn.lay(i)).filter(m => m.valid);
-            move = rand_pick(possible_moves);
-        }
 
-        // if not possible to lay, then choose something else
-        if (!move) switch (rand_pick(actions)) {
-            case 'draw':
-            case 'devour':
-                move = turn.draw();
-                break;
-
-            case 'stay':
-                move = turn.doNothing();
-                break;
-
-            case 'queer':
-                move = turn.selectQueenSuit(rand_pick(cards.SUITS));
-                break;
-
-        }
-
-        // fail
-        if (!move) {
-            console.log('failed to compute for', turn.state, 'actions=', turn.possibleActions());
-            return;
-        }
-
-        setTimeout(() => {
-            console.log(players[i].name + ' hraje: ', move.serialize(), move);
-            turn.makeAction(this, move);
-        }, 500);
-    };
-
-}
-
-function rand_pick (array) {
-    return array[Math.floor(Math.random()*array.length)]
-}
-
-window.cable = cable;
+window.apps = apps;

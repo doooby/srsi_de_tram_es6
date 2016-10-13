@@ -1,11 +1,14 @@
 import {cards, Card} from './deck';
 import {GameState, DrawMove, LayMove, QueerMove, NoMove} from './game_state';
 
+
 export class Game {
 
-    constructor (players, local_player) {
+    constructor (players, player_i) {
+        this.state = GameState.empty.duplicate();
         this.players = players;
-        this.local_player = local_player;
+        this.player_i = player_i;
+        players.forEach((p, i) => p.joinGame(this, i));
     }
 
     begin (deck) {
@@ -17,25 +20,20 @@ export class Game {
         this.setState(state);
     }
 
-    attachEvents (events) {
-        this.triggerEvent = function () {
-
-        };
+    localPlayer () {
+        return this.players[this.player_i];
     }
 
     createTurn () {
-        return new Turn(this.state);
-    }
-
-    applyMove (move) {
-        this.setState(move.applyTo(this.state));
+        return new Turn(this.state, this);
     }
 
     setState (state) {
         this.state = state;
         if (this.history !== undefined) this.history.push(state);
-        this.triggerEvent('_on_modified');
-        if (this.state.on_move === this.local_player) this.triggerEvent('_on_turn');
+
+        this.players.forEach(p => p.gameStateChanged());
+        if (this.state.on_move === this.player_i) this.localPlayer().onMove();
     }
 
     triggerEvent () {
@@ -47,6 +45,15 @@ export class Game {
             }, 0);
         }
     }
+
+    onBadMove () {}
+
+    onPlayerMoved (move, local_source) {
+        this.setState(move.applyTo(this.state));
+        if (local_source) this.propagateMove(move);
+    }
+
+    propagateMove () {}
 
     t (key) {
         let value = _translation_finder(this.translations, key.split('.'), 0);
@@ -68,12 +75,21 @@ export class Player {
         this.name = name;
     }
 
+    joinGame (game, player_i) {
+        this.game = game;
+        this.player_i = player_i;
+    }
+
+    gameStateChanged () {}
+    onMove () {}
+
 }
 
 export class Turn {
 
-    constructor (state) {
+    constructor (state, game) {
         this.state = state;
+        this.game = game;
     }
 
     lay (card_i) {
@@ -116,11 +132,11 @@ export class Turn {
         return last_is_ace ? [passive] : [passive, 'lay'];
     }
 
-    makeAction (game, move) {
+    makeAction (move) {
         if (move.valid) {
-            game.triggerEvent('_on_move', move, game.local_player);
+            this.game.onPlayerMoved(move, true);
         } else {
-            game.triggerEvent('_on_bad_move', move, game.local_player);
+            this.game.onBadMove(move);
         }
     }
 

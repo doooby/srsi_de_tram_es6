@@ -7,38 +7,41 @@ export default class HbApp {
 
     constructor (game, $container) {
         this.$c = $container;
+        this.game = game;
 
-        this.g = game;
+        this.game.history = [];
+
         let instance = this;
-        game._on_bad_move = function (move) {
+        game.onBadMove = function (move) {
             instance.printAlert(this.t('bad_move.' + move.error));
         };
-        game._on_modified = function () {
-            instance.printTurn(this.createTurn());
-        }
+        game.localPlayer().gameStateChanged = function () {
+            instance.printTurn(this.game.createTurn());
+        };
     }
 
     printTurn (turn) {
         this.$c.html('');
+        this.turn = turn;
 
         // print Deck
         this.$c.append(HandlebarsTemplates['section']({
             section: 'deck',
-            title: this.g.t('titles.deck'),
+            title: turn.game.t('titles.deck'),
             cards: this.generateCardsHelper(turn.state.deck, {visible: this.debug})
         }));
 
         // print Pile
         this.$c.append(HandlebarsTemplates['section']({
             section: 'pile',
-            title: this.g.t('titles.pile'),
+            title: turn.game.t('titles.pile'),
             cards: this.generateCardsHelper(turn.state.pile, {visible: true}),
             queer: (turn.state.suit ? cards.transcribe(turn.state.suit) : null)
         }));
 
         // print Players
         turn.state.players.forEach((player, player_i) => {
-            let local_player = this.g.local_player === player_i;
+            let local_player = turn.game.player_i === player_i;
             let on_turn = turn.state.on_move === player_i;
             let possible_actions = turn.possibleActions();
             let $html = $(HandlebarsTemplates['section']({
@@ -47,7 +50,7 @@ export default class HbApp {
                     (local_player ? 'local_player' : undefined),
                     (on_turn ? 'on_turn' : undefined)
                 ].join(' '),
-                title: this.g.t('titles.player') + ' - '+ this.g.players[player_i].name,
+                title: turn.game.t('titles.player') + ' - '+ turn.game.players[player_i].name,
                 cards: this.generateCardsHelper(turn.state.players[player_i],
                     {
                         visible: local_player || this.debug,
@@ -80,11 +83,11 @@ export default class HbApp {
             switch (action) {
                 case 'draw':
                 case 'stay':
-                    buttons.push({action: action, text: this.g.t('actions.'+action)});
+                    buttons.push({action: action, text: turn.game.t('actions.'+action)});
                     break;
 
                 case 'devour':
-                    buttons.push({action: action, text: this.g.t('actions.'+action) + ' ' + turn.state.attack});
+                    buttons.push({action: action, text: turn.game.t('actions.'+action) + ' ' + turn.state.attack});
                     break;
 
                 case 'queer':
@@ -131,7 +134,7 @@ export default class HbApp {
                 break;
 
         }
-        turn.makeAction(this.g, move);
+        turn.makeAction(move);
     }
 
 }
