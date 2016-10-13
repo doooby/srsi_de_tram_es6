@@ -2,8 +2,10 @@
 
 import {cards} from 'srsi/deck';
 import {Game, Player} from 'srsi/game';
-import HbApp from './handlebars_app';
 
+
+import HbApp from './handlebars_app';
+import cable from 'cable/integration';
 
 let players = [
     new Player('ondra'),
@@ -46,6 +48,14 @@ function create_app (container_selector, player) {
     game.translations = translations;
     let app = new HbApp(game, $(container_selector));
     game.begin(deck.slice());
+    app.channel = cable.openChannel('game', null, {
+        connected: function() { console.log('player '+player+' connected'); },
+        disconnected: function() { console.log('player '+player+' disconnected'); },
+        received: function(data) {
+            console.log('player '+player+' received', data);
+        }
+
+    });
     return app;
 }
 
@@ -65,45 +75,51 @@ window.apps[1].g._on_move = function (move) {
     window.apps[1].g.applyMove(move);
 };
 
-window.apps[1].g._on_turn = function () {
-    let turn = this.createTurn();
-    let actions = turn.possibleActions();
-    let move;
+for (let i=0; i<2; i+=1) {
 
-    // first try to lay anything
-    if (actions.indexOf('lay') !== -1) {
-        actions.splice(actions.indexOf('lay'), 1);
-        let possible_moves = turn.state.players[this.state.on_move].map((_, i) => turn.lay(i)).filter(m => m.valid);
-        move = rand_pick(possible_moves);
-    }
+    window.apps[i].g._on_turn = function () {
+        let turn = this.createTurn();
+        let actions = turn.possibleActions();
+        let move;
 
-    // if not possible to lay, then choose something else
-    if (!move) switch (rand_pick(actions)) {
-        case 'draw':
-        case 'devour':
-            move = turn.draw();
-            break;
+        // first try to lay anything
+        if (actions.indexOf('lay') !== -1) {
+            actions.splice(actions.indexOf('lay'), 1);
+            let possible_moves = turn.state.players[this.state.on_move].map((_, i) => turn.lay(i)).filter(m => m.valid);
+            move = rand_pick(possible_moves);
+        }
 
-        case 'stay':
-            move = turn.doNothing();
-            break;
+        // if not possible to lay, then choose something else
+        if (!move) switch (rand_pick(actions)) {
+            case 'draw':
+            case 'devour':
+                move = turn.draw();
+                break;
 
-        case 'queer':
-            move = turn.selectQueenSuit(rand_pick(cards.SUITS));
-            break;
+            case 'stay':
+                move = turn.doNothing();
+                break;
 
-    }
+            case 'queer':
+                move = turn.selectQueenSuit(rand_pick(cards.SUITS));
+                break;
 
-    // fail
-    if (!move) {
-        console.log('failed to compute for', turn.state, 'actions=');
-        return;
-    }
+        }
 
-    console.log("hraju: ", move);
-    this.move(move);
-};
+        // fail
+        if (!move) {
+            console.log('failed to compute for', turn.state, 'actions=', turn.possibleActions());
+            return;
+        }
+
+        console.log(players[i].name + ' hraje: ', move);
+        setTimeout(() => this.move(move), 1000)
+    };
+
+}
 
 function rand_pick (array) {
     return array[Math.floor(Math.random()*array.length)]
 }
+
+window.cable = cable;

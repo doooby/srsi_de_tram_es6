@@ -19,7 +19,7 @@ export class Card {
     }
 }
 
-let transcriptions = {}, cards = [], suit_names = {};
+const transcriptions = {}, cards = [], suit_names = {};
 
 // suits
 cards.HEARTS = 0x10;  // 16 ♥
