@@ -27,14 +27,6 @@ export class Game {
         return new Turn(this.state);
     }
 
-    move (move) {
-        if (move.valid) {
-            this.triggerEvent('_on_move', move);
-        } else {
-            this.triggerEvent('_on_bad_move', move);
-        }
-    }
-
     applyMove (move) {
         this.setState(move.applyTo(this.state));
     }
@@ -122,6 +114,14 @@ export class Turn {
         let last_is_ace = player_cards.length === 1 && player_cards[0].rank === cards.ACE;
 
         return last_is_ace ? [passive] : [passive, 'lay'];
+    }
+
+    makeAction (game, move) {
+        if (move.valid) {
+            game.triggerEvent('_on_move', move, game.local_player);
+        } else {
+            game.triggerEvent('_on_bad_move', move, game.local_player);
+        }
     }
 
 }

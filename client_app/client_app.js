@@ -2,6 +2,7 @@
 
 import {cards} from 'srsi/deck';
 import {Game, Player} from 'srsi/game';
+import {Move} from 'srsi/game_state';
 
 
 import HbApp from './handlebars_app';
@@ -52,10 +53,18 @@ function create_app (container_selector, player) {
         connected: function() { console.log('player '+player+' connected'); },
         disconnected: function() { console.log('player '+player+' disconnected'); },
         received: function(data) {
-            console.log('player '+player+' received', data);
+            if (data.p === undefined || data.p === player) return;
+            console.log('player '+player+' received from '+data.p, data.d, Move.parse(data.d));
+
+            switch (data.a) {
+                case 'move':
+                    game.triggerEvent('_on_move', Move.parse(data.d), data.p);
+                    break;
+            }
         }
 
     });
+    app.debug = true;
     return app;
 }
 
@@ -65,17 +74,12 @@ window.apps = [
     create_app('#container2', 1)
 ];
 
-window.apps[0].g._on_move = function (move) {
-    window.apps[0].g.applyMove(move);
-    window.apps[1].g.applyMove(move);
-};
-
-window.apps[1].g._on_move = function (move) {
-    window.apps[0].g.applyMove(move);
-    window.apps[1].g.applyMove(move);
-};
-
 for (let i=0; i<2; i+=1) {
+
+    window.apps[i].g._on_move = function (move, player) {
+        window.apps[i].g.applyMove(move);
+        if (player === i) window.apps[i].channel.send({p: i, a: 'move', d: move.serialize()});
+    };
 
     window.apps[i].g._on_turn = function () {
         let turn = this.createTurn();
@@ -112,8 +116,10 @@ for (let i=0; i<2; i+=1) {
             return;
         }
 
-        console.log(players[i].name + ' hraje: ', move);
-        setTimeout(() => this.move(move), 1000)
+        setTimeout(() => {
+            console.log(players[i].name + ' hraje: ', move.serialize(), move);
+            turn.makeAction(this, move);
+        }, 500);
     };
 
 }

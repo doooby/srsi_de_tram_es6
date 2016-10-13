@@ -66,18 +66,39 @@ GameState.at = function (options) {
 };
 
 
-class Move {
+export class Move {
 
     constructor () {
         this.valid = true;
     }
 
-    serialize () {
-        return {move: 'nope'};
-    }
 }
 
+Move.parse = function (data) {
+  if (typeof data === 'object') switch (data.m) {
+      case 'draw':
+          return new DrawMove();
+          break;
+
+      case 'lay':
+          return new LayMove(data.card_i);
+          break;
+
+      case 'queer':
+          return new QueerMove(data.suit);
+          break;
+
+      case 'no':
+          return new NoMove();
+          break;
+  }
+};
+
 export class DrawMove extends Move {
+
+    serialize () {
+        return {m: 'draw'};
+    }
 
     evaluate (context) {
         let state = context.state, pile = state.pileCard();
@@ -136,6 +157,10 @@ export class LayMove extends Move {
     constructor (card_i) {
         super();
         this.card_i = card_i;
+    }
+
+    serialize () {
+        return {m: 'lay', card_i: this.card_i};
     }
 
     evaluate (context) {
@@ -240,6 +265,10 @@ export class QueerMove extends Move {
         this.suit = suit;
     }
 
+    serialize () {
+        return {m: 'queer', suit: this.suit};
+    }
+
     evaluate (context) {
         if (context.state.queer !== true) {
             this.error = 'no_queen';
@@ -258,6 +287,10 @@ export class QueerMove extends Move {
 }
 
 export class NoMove extends Move {
+
+    serialize () {
+        return {m: 'no'};
+    }
 
     evaluate (context) {
         let state = context.state, pile = state.pileCard();

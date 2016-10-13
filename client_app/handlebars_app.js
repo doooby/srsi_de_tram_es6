@@ -25,7 +25,7 @@ export default class HbApp {
         this.$c.append(HandlebarsTemplates['section']({
             section: 'deck',
             title: this.g.t('titles.deck'),
-            cards: this.generateCardsHelper(turn.state.deck, {visible: true})
+            cards: this.generateCardsHelper(turn.state.deck, {visible: this.debug})
         }));
 
         // print Pile
@@ -50,11 +50,11 @@ export default class HbApp {
                 title: this.g.t('titles.player') + ' - '+ this.g.players[player_i].name,
                 cards: this.generateCardsHelper(turn.state.players[player_i],
                     {
-                        visible: local_player,
+                        visible: local_player || this.debug,
                         can_lay: on_turn && (possible_actions.indexOf('lay') !== -1)
                     }
                 ),
-                actions: (local_player && on_turn ? this.generateActionsHelper(turn, possible_actions) : null),
+                actions: (local_player && on_turn ? this.generateActionsHelper(turn, possible_actions) : null)
             }));
             if (on_turn) $html.on('click', '[data-action]', this.playerMove.bind(this, turn));
             this.$c.append($html);
@@ -131,7 +131,7 @@ export default class HbApp {
                 break;
 
         }
-        this.g.move(move);
+        turn.makeAction(this.g, move);
     }
 
 }
