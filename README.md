@@ -9,3 +9,6 @@ npm install
 (async adapter for ActionCable)
 (sqlite3 for db)
 bin/rails s
+
+###js (game app) tests
+npm test
