@@ -51,27 +51,21 @@ export default class HbApp {
                     (on_turn ? 'on_turn' : undefined)
                 ].join(' '),
                 title: turn.game.t('titles.player') + ' - '+ turn.game.players[player_i].name,
-                cards: this.generateCardsHelper(turn.state.players[player_i],
-                    {
-                        visible: local_player || this.debug,
-                        can_lay: on_turn && (possible_actions.indexOf('lay') !== -1)
-                    }
-                ),
+                cards: this.generateCardsHelper(turn.state.players[player_i], {visible: local_player || this.debug}),
                 actions: (local_player && on_turn ? this.generateActionsHelper(turn, possible_actions) : null)
             }));
             if (on_turn) $html.on('click', '[data-action]', this.playerMove.bind(this, turn));
             this.$c.append($html);
         });
 
-        this.$c.append('<div id="printout"></div>');
+        this.$c.append('<div class="printout"></div>');
     }
 
     generateCardsHelper (_cards, context) {
         let visible = !!context.visible;
-        let can_lay = !!context.can_lay;
         return _cards.map((c, i) => {
             if (visible) {
-                return {index: i, text: c.text, can_lay: can_lay, suit: cards.suitName(c.suit)};
+                return {index: i, text: c.text, suit: cards.suitName(c.suit)};
             }
             else return {index: i, hidden: true};
         });
