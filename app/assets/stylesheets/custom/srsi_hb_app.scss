@@ -1,5 +1,11 @@
 .hb_app_container {
-  background-color: #b8efb8;
+  $bg-color: #b8efb8;
+  $red-card: #a91b08;
+  $black-card: #202122;
+  $active-color: #9aa97e;
+
+  background-color: $bg-color;
+  position: relative;
 
 
   .printout {
@@ -7,10 +13,6 @@
   }
 
   .section {
-    $red-card: #a91b08;
-    $black-card: #202122;
-    $active-color: #9aa97e;
-
     margin: rem-calc(5);
 
     .title {
@@ -64,5 +66,17 @@
       min-width: rem-calc(50);
     }
   }
+
+  .overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    padding: rem-calc(60 20);
+    background-color: fade_out($bg-color, 0.15);
+    text-align: center;
+  }
+
 }
 

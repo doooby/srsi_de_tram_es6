@@ -35,6 +35,11 @@ let translations = {
         eights: 'Polož další osmu nebo ukonči dobráním.',
         no_queen: 'Nebyla zahrána dáma.',
         queer: 'Musíš vybrat novou barvu.'
+    },
+
+    texts: {
+        you_win: 'Vyhrál jsi!',
+        you_lost: 'Prohrál jsi.'
     }
 };
 
@@ -52,14 +57,14 @@ function create_app (container_selector, player_i) {
     return app;
 }
 
-function set_player_as_ai (player) {
+function set_player_as_ai (player, delay=1000) {
     RandomPossibleAI(player, {
 
         action: function (turn, move, action) {
             setTimeout(() => {
                 console.log(player.player_i + ' moves', move.serialize(), move);
                 action();
-            }, 1000);
+            }, delay);
         },
 
         failed: function (turn, move) {
@@ -112,8 +117,8 @@ let apps = [
     create_app('#container2', 1)
 ];
 
-set_player_as_ai(apps[0].game.localPlayer());
-set_player_as_ai(apps[1].game.localPlayer());
+set_player_as_ai(apps[0].game.localPlayer(), 10);
+set_player_as_ai(apps[1].game.localPlayer(), 10);
 
 localMatch(apps.map(app => app.game));
 //apps.map(app => app.game).forEach(cableMatch);

@@ -37,6 +37,11 @@ export class GameState {
         return queer_suit ? new Card(queer_suit | real.rank) : real;
     }
 
+    playerWon () {
+        return (this.onMovePlayerCards().length === 0 &&
+            this.queer === null && this.attack === 0 && this.eights === 0);
+    }
+
 }
 
 GameState.empty = new GameState({

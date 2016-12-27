@@ -7,8 +7,9 @@ export default class HbApp {
 
     constructor (game, $container) {
         this.$c = $container;
-        this.game = game;
+        this.ended = false;
 
+        this.game = game;
         this.game.history = [];
 
         let instance = this;
@@ -17,6 +18,21 @@ export default class HbApp {
         };
         game.localPlayer().gameStateChanged = function () {
             instance.printTurn(this.game.createTurn());
+        };
+        game.localPlayer().playerEnded = function (winner) {
+            instance.ended = true;
+            let content;
+
+            if (winner === instance.game.player_i) {
+                content = `<h2>${game.t('texts.you_win')}</h2>`;
+
+
+            } else {
+                content = `<h2>${game.t('texts.you_lost')}</h2>`;
+
+            }
+
+            instance.$c.append(`<div class="overlay">${content}</div>`);
         };
     }
 
@@ -104,6 +120,7 @@ export default class HbApp {
 
     playerMove (turn, e) {
         this.clearAlert();
+        if (this.ended) return;
         let $el = $(e.target);
         let move;
 

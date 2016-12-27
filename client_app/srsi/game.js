@@ -33,7 +33,13 @@ export class Game {
         if (this.history !== undefined) this.history.push(state);
 
         this.players.forEach(p => p.gameStateChanged());
-        if (this.state.on_move === this.player_i) this.localPlayer().onMove();
+        if (this.state.playerWon()) {
+            let winner = this.state.on_move;
+            this.players.forEach(p => p.playerEnded(winner));
+            return;
+        }
+
+        if ( this.state.on_move === this.player_i) this.localPlayer().onMove();
     }
 
     triggerEvent () {
@@ -82,6 +88,7 @@ export class Player {
 
     gameStateChanged () {}
     onMove () {}
+    playerEnded () {}
 
 }
 
