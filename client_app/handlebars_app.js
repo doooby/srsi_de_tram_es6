@@ -36,7 +36,7 @@ export default class HbApp {
             section: 'pile',
             title: turn.game.t('titles.pile'),
             cards: this.generateCardsHelper(turn.state.pile, {visible: true}),
-            queer: (turn.state.suit ? cards.transcribe(turn.state.suit) : null)
+            queer: (turn.state.queer ? cards.transcribe(turn.state.suit) : null)
         }));
 
         // print Players

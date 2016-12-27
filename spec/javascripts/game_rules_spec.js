@@ -301,6 +301,7 @@ describe('game rules', () => {
 
         it('queen & queer only', () => {
             let turn = new Turn(GameState.at({
+                deck: [new Card(0)],
                 pile: [new Card(cards.HEARTS | cards.QUEEN)],
                 queer: true,
                 continuance: true
@@ -308,6 +309,48 @@ describe('game rules', () => {
             expect(turn.draw()).toBeInvalidMove('queer');
             expect(turn.lay(0)).toBeInvalidMove('queer');
             expect(turn.doNothing()).toBeInvalidMove('queer');
+        });
+
+        it('draw after queen changed', () => {
+            let turn = new Turn(GameState.at({
+                deck: [new Card(0)],
+                pile: [new Card(cards.HEARTS | cards.QUEEN)],
+                queer: cards.HEARTS,
+                continuance: true
+            }));
+            expect(turn.draw()).toBeValidMove();
+        });
+
+        it('draw after queen changed - discontinued', () => {
+            let turn = new Turn(GameState.at({
+                deck: [new Card(0)],
+                pile: [new Card(cards.HEARTS | cards.QUEEN)],
+                queer: cards.HEARTS
+            }));
+            expect(turn.draw()).toBeValidMove();
+        });
+
+        it('lay after queen changed', () => {
+            let turn = new Turn(GameState.at({
+                pile: [new Card(cards.HEARTS | cards.QUEEN)],
+                players: [
+                    [new Card(cards.ACORNS | cards.TEN)]
+                ],
+                queer: cards.ACORNS,
+                continuance: true
+            }));
+            expect(turn.lay(0)).toBeValidMove();
+        });
+
+        it('lay after queen changed - discontinued', () => {
+            let turn = new Turn(GameState.at({
+                pile: [new Card(cards.HEARTS | cards.QUEEN)],
+                players: [
+                    [new Card(cards.ACORNS | cards.TEN)]
+                ],
+                queer: cards.ACORNS
+            }));
+            expect(turn.lay(0)).toBeValidMove();
         });
 
     });

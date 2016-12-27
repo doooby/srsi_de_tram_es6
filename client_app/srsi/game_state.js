@@ -103,7 +103,7 @@ export class DrawMove extends Move {
     evaluate (context) {
         let state = context.state, pile = state.pileCard();
 
-        if (state.continuance && state.queer) {
+        if (state.continuance && state.queer === true) {
             this.error = 'queer';
             this.valid = false;
             return;
@@ -128,6 +128,7 @@ export class DrawMove extends Move {
     applyTo (state) {
         state = state.duplicate();
         state.continuance = false;
+        state.queer = null;
 
         let attack = state.attack, eights = state.eights, to_take = 1;
         if (attack > 0) {
@@ -164,9 +165,9 @@ export class LayMove extends Move {
     }
 
     evaluate (context) {
-        let state = context.state
+        let state = context.state;
 
-        if (state.continuance && state.queer) {
+        if (state.continuance && state.queer === true) {
             this.error = 'queer';
             this.valid = false;
             return;
@@ -221,6 +222,7 @@ export class LayMove extends Move {
 
         let attack = state.attack, eights = state.eights;
         state.continuance = true;
+        state.queer = null;
         let end_of_move = true;
 
         switch (card.rank) {

@@ -186,6 +186,69 @@ describe('game rules', () => {
             expect(diff.list).toEqual(['on_move', 'queer']);
         });
 
+        it('lay queen', () => {
+            let {diff, state, new_state} = state_after_move(GameState.at({
+                    pile: [new Card(cards.HEARTS | cards.NINE)],
+                    players: [
+                        [new Card(cards.HEARTS | cards.QUEEN)],
+                        []
+                    ],
+                    continuance: true
+                }),
+                new LayMove(0)
+            );
+            expect(diff.pile).toBe(1);
+            expect(diff.player).toBe(-1);
+            expect(new_state.pile[1].id()).toBe(state.players[0][0].id());
+            expect(new_state.continuance).toBe(true);
+            expect(new_state.queer).toBe(true);
+            expect(diff.list).toEqual(['pile', 'player', 'queer']);
+        });
+
+        it('draw after queen changed', () => {
+            let {diff, state, new_state} = state_after_move(GameState.at({
+                    deck: [new Card(0)],
+                    pile: [new Card(cards.HEARTS | cards.QUEEN)],
+                    players: [
+                        [],
+                        []
+                    ],
+                    continuance: true,
+                    queer: cards.ACORNS
+                }),
+                new DrawMove()
+            );
+            expect(diff.pile).toBe(false);
+            expect(diff.deck).toBe(-1);
+            expect(diff.player).toBe(1);
+            expect(new_state.players[0][0].id()).toBe(state.deck[0].id());
+            expect(new_state.continuance).toBe(false);
+            expect(new_state.queer).toBe(null);
+            expect(diff.list).toEqual(['deck', 'player', 'on_move', 'continuance', 'queer']);
+        });
+
+        it('lay after queen changed', () => {
+            let {diff, state, new_state} = state_after_move(GameState.at({
+                    deck: [new Card(0)],
+                    pile: [new Card(cards.HEARTS | cards.QUEEN)],
+                    players: [
+                        [new Card(cards.ACORNS | cards.NINE)],
+                        []
+                    ],
+                    continuance: true,
+                    queer: cards.ACORNS
+                }),
+                new LayMove(0)
+            );
+            expect(diff.pile).toBe(1);
+            expect(diff.deck).toBe(false);
+            expect(diff.player).toBe(-1);
+            expect(new_state.pile[1].id()).toBe(state.players[0][0].id());
+            expect(new_state.continuance).toBe(true);
+            expect(new_state.queer).toBe(null);
+            expect(diff.list).toEqual(['pile', 'player', 'on_move', 'queer']);
+        });
+
     });
 
     describe('eights move', () => {
