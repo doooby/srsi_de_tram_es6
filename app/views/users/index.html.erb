@@ -1,0 +1,30 @@
+<div class="row">
+
+  <div class="small-12 columns">
+    <h3><%= t 'users.captions.users_table' %></h3>
+
+    <table>
+      <thead>
+      <th></th>
+      <th>email</th>
+      <th>last change</th>
+      </thead>
+      <tbody>
+      <% @users.each do |user| %>
+        <tr>
+          <td>
+            <%= content_tag :span, 'admin', class: 'badge secondary' if user.admin? %>
+          </td>
+          <td><%= user.email %></td>
+          <td><%= l user.updated_at if user.updated_at %></td>
+        </tr>
+      <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="small-12 columns" id="new_user_form">
+    <%= render partial: 'user_form', locals: {user: @new_user} %>
+  </div>
+
+</div>

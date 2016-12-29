@@ -1,0 +1,7 @@
+<% if @new_user.errors.empty? %>
+  window.location.reload();
+
+<% else %>
+  $('#new_user_form').html('<%= j render(partial: 'user_form', locals: {user: @new_user}) %>');
+
+<% end %>

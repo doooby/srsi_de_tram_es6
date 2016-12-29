@@ -15,6 +15,9 @@ gem 'sprockets-commoner' # babel es6
 gem 'handlebars_assets'  #
 gem 'foundation-rails'
 
+gem 'devise'
+gem 'cancancan'
+
 group :development, :test do
   gem 'byebug', platform: :mri
 end
