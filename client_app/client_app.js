@@ -45,15 +45,17 @@ let translations = {
 
 let deck = cards.shuffleNewDeck();
 
+const players_names = [
+    'hráč',
+    'random AI'
+];
+
 function create_app (container_selector, player_i) {
-    let game = new Game([
-        new Player('ondra'),
-        new Player('karel')
-    ], player_i);
+    let game = new Game(players_names.map(name => new Player(name)), player_i);
     game.translations = translations;
     let app = new HbApp(game, $(container_selector));
 
-    app.debug = true;
+    //app.debug = true;
     return app;
 }
 
@@ -111,19 +113,31 @@ let cableMatch = function (game) {
 
 };
 
+/////////////////////// local AI vs AI
 
-let apps = [
-    create_app('#container1', 0),
-    create_app('#container2', 1)
-];
+//let apps = [
+//    create_app('#container1', 0),
+//    create_app('#container2', 1)
+//];
+//window.apps = apps;
 
-set_player_as_ai(apps[0].game.localPlayer(), 10);
-set_player_as_ai(apps[1].game.localPlayer(), 10);
+//set_player_as_ai(apps[0].game.localPlayer(), 10);
+//set_player_as_ai(apps[1].game.localPlayer(), 10);
 
-localMatch(apps.map(app => app.game));
+//localMatch(apps.map(app => app.game));
 //apps.map(app => app.game).forEach(cableMatch);
 
-apps.forEach(app => app.game.begin(deck.slice()));
+//apps.forEach(app => app.game.begin(deck.slice()));
 
 
-window.apps = apps;
+
+/////////////////////////// local player vs AI
+
+let player_app = create_app('#container1', 0);
+
+let ai_game = new Game(players_names.map(name => new Player(name)), 1);
+set_player_as_ai(ai_game.localPlayer(), 10);
+
+localMatch([player_app.game, ai_game]);
+player_app.game.begin(deck.slice());
+ai_game.begin(deck.slice());
