@@ -1,9 +1,9 @@
 source 'https://rubygems.org'
 
-ruby '2.4.0'
+ruby '2.3.3'
 
 gem 'rails', '~> 5.0.0' # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
-gem 'sqlite3' # Use sqlite3 as the database for Active Record
+gem 'pg'
 gem 'puma', '~> 3.0' # Use Puma as the app server
 # gem 'redis', '~> 3.0' # Use Redis adapter to run Action Cable in production
 # gem 'bcrypt', '~> 3.1.7' # Use ActiveModel has_secure_password
