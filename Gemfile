@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-ruby '2.3.1'
+ruby '2.4.0'
 
 gem 'rails', '~> 5.0.0' # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'sqlite3' # Use sqlite3 as the database for Active Record
@@ -13,7 +13,7 @@ gem 'uglifier', '>= 1.3.0' # Use Uglifier as compressor for JavaScript assets
 gem 'jquery-rails' # Use jquery as the JavaScript library
 gem 'sprockets-commoner' # babel es6
 gem 'handlebars_assets'  #
-gem 'foundation-rails'
+gem 'foundation-rails', '~> 6.2.0'
 
 gem 'devise'
 gem 'cancancan'
