@@ -5,9 +5,10 @@ import {cards} from 'srsi/deck';
 
 export default class HbApp {
 
-    constructor (game, $container) {
+    constructor (game, $container, playable=true) {
         this.$c = $container;
         this.ended = false;
+        this.playable = playable;
 
         this.game = game;
         this.game.history = [];
@@ -42,23 +43,26 @@ export default class HbApp {
 
         // print Deck
         this.$c.append(HandlebarsTemplates['section']({
-            section: 'deck',
+            css_classes: 'deck',
             title: turn.game.t('titles.deck'),
             cards: this.generateCardsHelper(turn.state.deck, {visible: this.debug})
         }));
 
         // print Pile
         this.$c.append(HandlebarsTemplates['section']({
-            section: 'pile',
+            css_classes: 'pile',
             title: turn.game.t('titles.pile'),
             cards: this.generateCardsHelper(turn.state.pile, {visible: true}),
-            queer: (turn.state.queer ? cards.transcribe(turn.state.suit) : null)
+            queer: (typeof turn.state.queer === 'number' ? {
+                suit: cards.suitName(turn.state.queer),
+                text: cards.transcribe(turn.state.queer)
+            } : null)
         }));
 
         // print Players
         turn.state.players.forEach((player, player_i) => {
             let local_player = turn.game.player_i === player_i;
-            let on_turn = turn.state.on_move === player_i;
+            let on_turn = turn.state.on_move === player_i && this.playable;
             let possible_actions = turn.possibleActions();
             let $html = $(HandlebarsTemplates['section']({
                 css_classes: [

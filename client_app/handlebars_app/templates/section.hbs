@@ -9,9 +9,13 @@
 
     {{#each cards}}
         <span class="card {{suit}} {{#if @first}}first{{/if}} {{#if @last}}last{{/if}} {{#if hidden}}hidden{{/if}}"
-              data-card="{{index}}" data-action="lay">{{text}}</span>
+              data-card="{{index}}" data-action="lay">
+            {{text}}
+        </span>
     {{/each}}
 
-    {{#if queer}}{{queer}}{{/if}}
+    {{#if queer}}
+        <span class="card {{queer.suit}}">{{queer.text}}</span>
+    {{/if}}
 
 </div>

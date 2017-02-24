@@ -13,12 +13,22 @@
 <body>
 
 <div class="row">
-  <div id="container1" class="columns small-12 medium-6 medium-offset-3 hb_app_container">
+  <div class="columns small-12 medium-6 medium-offset-3">
+    <h3>Srší De Tram - in proggress</h3>
+
+    <span>gui examples:</span>
+    <br>
+    <ul>
+      <%=
+        safe_join PagesController::EXAMPLES.to_a.map{|example, definition|
+          content_tag :li, link_to(definition[:caption], "/examples/#{example}")
+        }
+      %>
+    </ul>
+
+
   </div>
-  <!--<div id="container2" class="columns small-12 medium-6 hb_app_container">
-  </div>-->
 </div>
 
-<%= javascript_include_tag 'client_app' %>
 </body>
 </html>

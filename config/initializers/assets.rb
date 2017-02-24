@@ -10,7 +10,8 @@ Rails.application.config.assets.paths << Rails.root.join('client_app')
 # Precompile additional assets.
 # application.js, application.css, and all non-JS/CSS in app/assets folder are already added.
 # Rails.application.config.assets.precompile += %w( search.js )
-Rails.application.config.assets.precompile += %w( client_app.js )
+# Rails.application.config.assets.precompile += %w( client_app.js )
+Rails.application.config.assets.precompile << /^examples\/[\d\w]+\.js$/
 
 Rails.application.config.assets.configure do |env|
   Sprockets::Commoner::Processor.configure env,

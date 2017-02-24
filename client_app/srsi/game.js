@@ -1,6 +1,6 @@
 import {cards, Card} from './deck';
 import {GameState, DrawMove, LayMove, QueerMove, NoMove} from './game_state';
-
+import translations from './translations';
 
 export class Game {
 
@@ -67,6 +67,12 @@ export class Game {
     }
 
 }
+
+Game.newDeck = function () {
+    return cards.shuffleNewDeck();
+};
+
+Game.translations = translations;
 
 function _translation_finder (data, keys, i) {
     if (typeof data !== 'object') return undefined;

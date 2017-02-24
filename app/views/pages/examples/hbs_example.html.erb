@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <%= csrf_meta_tags %>
+
+  <title>Srší De Tram</title>
+
+  <%= stylesheet_link_tag    'application', media: 'all' %>
+  <%= javascript_include_tag 'application' %>
+</head>
+<body>
+
+<%= link_to 'back', root_path %>
+<h1><%= caption %></h1>
+
+<div class="row">
+  <%
+    css_cols_definitions = case apps_count
+      when 3 then Array.new 3, 'medium-4'
+      when 2 then ['medium-4 medium-offset-2', 'medium-4']
+      when 1 then ['medium-6 medium-offset-3']
+      else raise 'bad apps count'
+    end
+  %>
+  <% css_cols_definitions.each_with_index do |css_cols, index| %>
+      <%= content_tag :div, nil, class: "columns small-12 #{css_cols} hb_app_container", 'data-hb-app': index %>
+  <% end %>
+
+</div>
+
+<%= javascript_include_tag "examples/#{example}" %>
+</body>
+</html>
