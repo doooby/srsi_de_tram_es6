@@ -5,7 +5,8 @@ class PagesController < ApplicationController
   EXAMPLES = {
       vs_ai_hbs: {caption: 'HBS: hra proti počítači', render_action: :render_hbs_example, apps_count: 1},
       '3_ai_hbs': {caption: 'HBS: AI vs AI vs AI test', render_action: :render_hbs_example, apps_count: 3},
-      'action_cable_hbs': {caption: 'HBS: test ActionCable', render_action: :render_hbs_example, apps_count: 2}
+      action_cable_hbs: {caption: 'HBS: test ActionCable', render_action: :render_hbs_example, apps_count: 2},
+      srsi_preact_dev: {caption: 'Preact dev'}
   }.freeze
 
   def home
@@ -13,8 +14,17 @@ class PagesController < ApplicationController
   end
 
   def examples
-    example_def = EXAMPLES[params[:example].to_sym] || (return head 404)
-    send example_def[:render_action], example_def.merge(example: params[:example])
+    example = params[:example]
+    example_def = EXAMPLES[example.to_sym] || (return head 404)
+    example_def = example_def.merge example: example
+
+    if example_def[:render_action]
+      send example_def[:render_action], example_def
+
+    else
+      render "pages/examples/#{example}", locals: example_def
+
+    end
   end
 
   private

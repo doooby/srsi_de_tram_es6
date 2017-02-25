@@ -39,14 +39,14 @@ export default function RandomPossibleAI (player, options) {
         // fail
         if (!move) {
             if (typeof callback_failed === 'function') {
-                if (debug) console.log(player.name + ' failed to compute for', turn.state, turn.possibleActions());
+                if (debug) console.log(`[AI] ${player.name} failed to compute for`, turn.state, turn.possibleActions());
                 callback_failed(turn, move);
             }
             return;
         }
 
         let action = function () {
-            if (debug) console.log(player.player_i + ' moves', move.serialize(), move);
+            if (debug) console.log(`[AI] ${player.player_i} moves`, move.serialize(), move);
             turn.makeAction(move);
         };
 

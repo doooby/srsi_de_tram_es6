@@ -31,7 +31,7 @@ const translations = {
 
         texts: {
             ai_fail: 'Strojový výpočet tahu selhal.',
-            you_win: 'Vyhrál jsi!',
+            you_won: 'Vyhrál jsi!',
             you_lost: 'Prohrál jsi.'
         }
     }

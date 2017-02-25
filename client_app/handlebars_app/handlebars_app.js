@@ -25,7 +25,7 @@ export default class HbApp {
             let content;
 
             if (winner === instance.game.player_i) {
-                content = `<h2>${game.t('texts.you_win')}</h2>`;
+                content = `<h2>${game.t('texts.you_won')}</h2>`;
 
 
             } else {

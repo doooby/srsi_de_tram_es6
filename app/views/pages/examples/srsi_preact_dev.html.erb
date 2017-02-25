@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <%= csrf_meta_tags %>
+
+  <title>Srší De Tram</title>
+
+  <%= stylesheet_link_tag    'application', media: 'all' %>
+  <%= javascript_include_tag 'application' %>
+</head>
+<body>
+
+<%= link_to 'back', root_path %>
+<h1><%= caption %></h1>
+
+<div class="row">
+  <div id="srsi_preact" class="columns small-12">
+  </div>
+</div>
+
+<%= javascript_include_tag "examples/#{example}" %>
+
+</body>
+</html>
